@@ -1,0 +1,1955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Talent Acquisition — Calculation Tracker</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f4f0;color:#1a1a18;min-height:100vh;}
+
+/* ── LOGIN ── */
+#login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f0efeb;padding:20px;}
+#login-box{background:#fff;border:1px solid #e4e2da;border-radius:16px;padding:32px 36px;width:100%;max-width:420px;box-shadow:0 2px 16px rgba(0,0,0,.06);}
+#app-wrap{display:none;}
+
+/* ── GLOBAL ── */
+header{background:#fff;border-bottom:1px solid #e4e2da;padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100;}
+.hero{background:#fff;border-bottom:1px solid #e4e2da;padding:28px 32px;}
+.hero h1{font-size:24px;font-weight:600;margin-bottom:6px;}
+.hero p{font-size:14px;color:#666;max-width:620px;line-height:1.6;}
+.pill-row{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;}
+.pill{display:inline-flex;align-items:center;font-size:12px;padding:4px 12px;border-radius:99px;font-weight:500;}
+.pill-blue{background:#eef2ff;color:#4f46e5;}.pill-green{background:#f0fdf4;color:#16a34a;}
+.pill-amber{background:#fffbeb;color:#b45309;}.pill-purple{background:#f5f3ff;color:#7c3aed;}
+.tabs{background:#fff;border-bottom:1px solid #e4e2da;padding:0 32px;display:flex;overflow-x:auto;}
+.tab{padding:14px 16px;font-size:13px;font-weight:500;color:#888;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;}
+.tab:hover{color:#1a1a18;}.tab.active{color:#6c63ff;border-bottom-color:#6c63ff;}
+.main{max-width:940px;margin:0 auto;padding:28px 24px;}
+.section{display:none;}.section.active{display:block;}
+.card{background:#fff;border:1px solid #e4e2da;border-radius:12px;padding:24px;margin-bottom:20px;}
+.card-title{font-size:15px;font-weight:600;margin-bottom:4px;}
+.card-sub{font-size:13px;color:#888;margin-bottom:16px;line-height:1.5;}
+.def-badge{display:inline-block;font-size:12px;padding:4px 12px;border-radius:99px;background:#eef2ff;color:#4f46e5;font-weight:500;margin-bottom:16px;}
+.def-badge-purple{background:#f5f3ff;color:#7c3aed;}.def-badge-green{background:#f0fdf4;color:#16a34a;}
+.qs-row{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
+.qs-row label{font-size:13px;color:#666;}
+.qs-row select{padding:7px 12px;border:1px solid #e4e2da;border-radius:8px;font-size:13px;font-family:inherit;outline:none;background:#fff;}
+.qs-period{font-size:13px;color:#6c63ff;font-weight:500;padding:7px 14px;background:#eef2ff;border-radius:8px;}
+.btn-row{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
+.btn{padding:8px 18px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid #e4e2da;background:#fff;color:#1a1a18;font-family:inherit;}
+.btn:hover{background:#f5f4f0;}
+.btn-primary{background:#6c63ff;color:#fff;border-color:#6c63ff;}.btn-primary:hover{background:#5b54e8;}
+.btn-green{background:#16a34a;color:#fff;border-color:#16a34a;}.btn-green:hover{background:#15803d;}
+.btn-purple{background:#7c3aed;color:#fff;border-color:#7c3aed;}.btn-purple:hover{background:#6d28d9;}
+.btn-red{background:#dc2626;color:#fff;border-color:#dc2626;}.btn-red:hover{background:#b91c1c;}
+.dept-item{border:1px solid #e4e2da;border-radius:10px;padding:16px;margin-bottom:10px;}
+.dept-name{font-size:13px;font-weight:600;margin-bottom:12px;color:#1a1a18;}
+.ctrl{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;}
+.ctrl label{font-size:12px;color:#666;min-width:175px;}
+.ni{width:80px;padding:6px 10px;border:1px solid #e4e2da;border-radius:8px;font-size:13px;text-align:center;outline:none;font-family:inherit;background:#fff;color:#1a1a18;}
+.ni:focus{border-color:#6c63ff;}
+.result-row{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap;}
+.bar-wrap{flex:1;min-width:60px;background:#f0efeb;border-radius:4px;height:10px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:4px;transition:width .35s;}
+.pct-val{font-size:14px;font-weight:600;min-width:40px;text-align:right;}
+.badge{display:inline-block;font-size:11px;padding:2px 10px;border-radius:99px;font-weight:500;white-space:nowrap;}
+.badge-green{background:#f0fdf4;color:#16a34a;}.badge-amber{background:#fffbeb;color:#b45309;}.badge-red{background:#fef2f2;color:#dc2626;}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:4px;}
+.s-card{background:#f5f4f0;border-radius:10px;padding:14px 16px;}
+.s-lbl{font-size:11px;color:#888;margin-bottom:4px;}.s-val{font-size:22px;font-weight:600;color:#1a1a18;}.s-sub{font-size:12px;color:#888;margin-top:2px;}
+.funnel-stage{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+.funnel-stage-lbl{font-size:13px;color:#666;min-width:110px;}.sep{font-size:12px;color:#aaa;}
+.funnel-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.funnel-bar-lbl{font-size:12px;color:#666;min-width:110px;}
+.funnel-bar-wrap{flex:1;background:#f0efeb;border-radius:4px;height:22px;overflow:hidden;}
+.funnel-bar-fill{height:100%;border-radius:4px;transition:width .35s;}
+.funnel-bar-pct{font-size:12px;font-weight:600;min-width:40px;text-align:right;}
+.insight-box{border-radius:10px;padding:14px 16px;font-size:13px;line-height:1.6;margin-top:16px;}
+.insight-red{background:#fef2f2;color:#dc2626;}.insight-amber{background:#fffbeb;color:#b45309;}.insight-green{background:#f0fdf4;color:#16a34a;}
+.big-score{font-size:48px;font-weight:600;line-height:1;margin:8px 0 4px;}
+.tgt-bar-wrap{background:#f0efeb;border-radius:4px;height:12px;width:100%;overflow:hidden;margin:10px 0 4px;}
+.tgt-bar-fill{height:100%;border-radius:4px;transition:width .4s;}
+.tgt-labels{display:flex;justify-content:space-between;font-size:11px;color:#aaa;margin-bottom:12px;}
+.ex-box{background:#f5f4f0;border-radius:10px;padding:14px;margin-bottom:14px;}
+.ex-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;font-size:12px;line-height:1.6;}
+.ex-row:last-child{margin:0;}
+.dept-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.dept-lbl{font-size:12px;color:#666;min-width:155px;}
+.di{width:64px;padding:5px 8px;border:1px solid #e4e2da;border-radius:8px;font-size:12px;text-align:center;outline:none;font-family:inherit;background:#fff;color:#1a1a18;}
+.di:focus{border-color:#6c63ff;}
+.dept-bar-wrap{flex:1;min-width:50px;background:#f0efeb;border-radius:4px;height:8px;overflow:hidden;}
+.dept-bar-fill{height:100%;border-radius:4px;transition:width .3s;}
+.dept-pct{font-size:13px;font-weight:500;min-width:36px;text-align:right;}
+.divider{border:none;border-top:1px solid #e4e2da;margin:20px 0;}
+.stat-row{display:flex;gap:10px;margin:14px 0;flex-wrap:wrap;}
+.stat{background:#f5f4f0;border-radius:10px;padding:12px 14px;flex:1;min-width:90px;}
+.stat .lbl{font-size:11px;color:#888;margin:0 0 3px;}.stat .val{font-size:20px;font-weight:600;color:#1a1a18;margin:0;}
+.records-table{width:100%;border-collapse:collapse;font-size:13px;}
+.records-table th{text-align:left;padding:8px 12px;border-bottom:2px solid #e4e2da;color:#666;font-weight:500;}
+.records-table td{padding:8px 12px;border-bottom:1px solid #f0efeb;color:#1a1a18;}
+.records-table tr:hover td{background:#fafaf8;}
+.empty-state{text-align:center;padding:32px;color:#aaa;font-size:13px;}
+.step-row{display:flex;gap:10px;margin-bottom:10px;align-items:flex-start;}
+.step-num{width:22px;height:22px;border-radius:50%;background:#eef2ff;color:#4f46e5;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.step-txt{font-size:13px;color:#444;line-height:1.6;}
+.how-box{background:#f5f4f0;border-radius:10px;padding:14px 18px;margin-bottom:10px;font-size:13px;color:#555;line-height:1.7;}
+.how-box strong{color:#1a1a18;}
+.admin-row{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border:1px solid #e4e2da;border-radius:10px;margin-bottom:8px;flex-wrap:wrap;gap:8px;}
+.admin-status{font-size:11px;padding:2px 10px;border-radius:99px;font-weight:500;}
+.admin-status.active{background:#f0fdf4;color:#16a34a;}.admin-status.disabled{background:#fef2f2;color:#dc2626;}
+.pw-field-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.pw-field-row input{padding:6px 10px;border:1px solid #e4e2da;border-radius:8px;font-size:13px;font-family:inherit;outline:none;width:160px;}
+.toast{position:fixed;bottom:24px;right:24px;background:#1a1a18;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:9999;}
+.toast.show{opacity:1;}
+footer{text-align:center;padding:28px 24px;font-size:12px;color:#aaa;border-top:1px solid #e4e2da;background:#fff;margin-top:40px;}
+.user-bar{display:flex;align-items:center;gap:8px;}
+.user-badge{display:flex;align-items:center;gap:8px;padding:6px 12px;background:#eef2ff;border-radius:99px;font-size:13px;font-weight:500;color:#4f46e5;}
+.switch-btn{font-size:12px;color:#888;cursor:pointer;padding:4px 8px;border-radius:6px;border:1px solid #e4e2da;background:#fff;font-family:inherit;}
+
+/* ── DAILY REPORT ── */
+.dr-date-bar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:0;}
+.dr-date-bar label{font-size:13px;color:#666;}
+.dr-date-bar input[type=date]{padding:7px 12px;border:1px solid #e4e2da;border-radius:8px;font-size:13px;font-family:inherit;outline:none;background:#fff;color:#1a1a18;}
+.dr-date-bar input[type=date]:focus{border-color:#6c63ff;}
+.dr-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:0;}
+.dr-metric{background:#f5f4f0;border-radius:10px;padding:14px 16px;text-align:center;}
+.dr-metric-lbl{font-size:11px;color:#888;margin-bottom:6px;line-height:1.4;}
+.dr-metric-val{font-size:26px;font-weight:700;color:#1a1a18;line-height:1;}
+.dr-metric-val input{background:none;border:none;border-bottom:1.5px dashed #ccc;outline:none;font-size:26px;font-weight:700;color:#1a1a18;width:60px;text-align:center;font-family:inherit;padding:0;}
+.dr-metric-val input:focus{border-bottom-color:#6c63ff;}
+.dr-metric-sub{font-size:11px;color:#aaa;margin-top:4px;}
+.dr-team-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;}
+.dr-team-card{border:1px solid #e4e2da;border-radius:10px;padding:16px;background:#fff;position:relative;overflow:hidden;}
+.dr-team-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.dr-r1::before{background:#6c63ff;}.dr-r2::before{background:#2563eb;}.dr-r3::before{background:#16a34a;}.dr-s1::before{background:#9333ea;}
+.dr-card-header{margin-bottom:12px;}
+.dr-name-input{font-size:13px;font-weight:600;color:#1a1a18;background:none;border:none;border-bottom:1px dashed #e4e2da;outline:none;width:100%;padding:0 0 3px;font-family:inherit;}
+.dr-name-input:focus{border-bottom-color:#6c63ff;}
+.dr-role-lbl{font-size:10px;color:#aaa;text-transform:uppercase;letter-spacing:0.08em;margin-top:4px;}
+.dr-stat-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:0.5px solid #f0efeb;}
+.dr-stat-row:last-child{border-bottom:none;}
+.dr-stat-lbl{font-size:11px;color:#666;}
+.dr-stat-input{font-size:12px;font-weight:600;color:#1a1a18;background:none;border:none;border-bottom:1px dashed #e4e2da;outline:none;width:44px;text-align:center;font-family:inherit;padding:0;}
+.dr-stat-input:focus{border-bottom-color:#6c63ff;}
+.dr-pipeline-table{width:100%;border-collapse:collapse;font-size:12px;}
+.dr-pipeline-table th{text-align:left;padding:8px 10px;border-bottom:2px solid #e4e2da;color:#666;font-weight:500;font-size:11px;white-space:nowrap;}
+.dr-pipeline-table td{padding:7px 10px;border-bottom:1px solid #f0efeb;vertical-align:middle;}
+.dr-pipeline-table tr:hover td{background:#fafaf8;}
+.dr-pipeline-table tr:last-child td{border-bottom:none;}
+.dr-td-input{background:none;border:none;border-bottom:1px dashed #e4e2da;outline:none;font-size:12px;color:#1a1a18;font-family:inherit;padding:2px 0;width:100%;}
+.dr-td-input:focus{border-bottom-color:#6c63ff;}
+.dr-stage-select{font-size:11px;padding:3px 8px;border:1px solid #e4e2da;border-radius:99px;background:#fff;outline:none;font-family:inherit;color:#1a1a18;cursor:pointer;}
+.dr-stage-select:focus{border-color:#6c63ff;}
+.dr-add-row-btn{font-size:12px;color:#6c63ff;background:none;border:1px dashed #b0acf5;border-radius:8px;padding:7px 14px;cursor:pointer;font-family:inherit;width:100%;margin-top:10px;}
+.dr-add-row-btn:hover{background:#f5f4ff;}
+.dr-remove-row{font-size:11px;color:#dc2626;background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:4px;font-family:inherit;}
+.dr-remove-row:hover{background:#fef2f2;}
+.flag-section{display:flex;flex-direction:column;gap:8px;}
+.flag-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:8px;background:#f5f4f0;}
+.flag-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.flag-dot-red{background:#dc2626;}.flag-dot-amber{background:#f59e0b;}
+.flag-text-input{flex:1;background:none;border:none;border-bottom:1px dashed #ccc;outline:none;font-size:13px;color:#1a1a18;font-family:inherit;padding:0 0 2px;line-height:1.5;}
+.flag-text-input:focus{border-bottom-color:#6c63ff;}
+.flag-type-select{font-size:11px;padding:3px 6px;border:1px solid #e4e2da;border-radius:6px;background:#fff;outline:none;font-family:inherit;cursor:pointer;flex-shrink:0;}
+.wins-textarea{width:100%;border:1px solid #e4e2da;border-radius:8px;padding:10px 12px;font-size:13px;font-family:inherit;resize:vertical;min-height:70px;outline:none;color:#1a1a18;background:#fff;line-height:1.6;}
+.wins-textarea:focus{border-color:#6c63ff;}
+.tomorrow-items{display:flex;flex-direction:column;gap:8px;}
+.tomorrow-row{display:flex;align-items:center;gap:10px;}
+.priority-badge{font-size:11px;padding:3px 10px;border-radius:99px;background:#eef2ff;color:#4f46e5;font-weight:500;white-space:nowrap;flex-shrink:0;}
+.tomorrow-input{flex:1;background:none;border:none;border-bottom:1px dashed #e4e2da;outline:none;font-size:13px;color:#1a1a18;font-family:inherit;padding:4px 0;}
+.tomorrow-input:focus{border-bottom-color:#6c63ff;}
+.dr-print-preview{background:#f5f4f0;border-radius:10px;padding:20px 24px;margin-top:4px;font-size:13px;line-height:1.8;color:#1a1a18;white-space:pre-wrap;font-family:inherit;}
+.dr-copy-btn{font-size:12px;color:#6c63ff;background:#eef2ff;border:none;border-radius:8px;padding:7px 16px;cursor:pointer;font-family:inherit;font-weight:500;}
+.dr-copy-btn:hover{background:#e0e7ff;}
+.dr-member-btn{padding:10px 12px;border:1.5px solid #e4e2da;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;background:#fff;color:#1a1a18;font-family:inherit;transition:all .15s;text-align:center;}
+.dr-member-btn:hover{border-color:#6c63ff;color:#6c63ff;background:#f5f4ff;}
+.dr-member-btn.dr-member-active{font-weight:600;}
+</style>
+</head>
+<body>
+
+<!-- ════ LOGIN ════ -->
+<div id="login-wrap">
+  <div id="login-box">
+    <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:20px;">
+      <div style="width:34px;height:34px;background:#e02020;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:#fff;">M</div>
+      <span style="font-size:17px;font-weight:700;color:#1a1a18;">ManifestGlobal</span>
+    </div>
+
+    <div id="step-name">
+      <p style="font-size:17px;font-weight:600;margin:0 0 6px;text-align:center;color:#1a1a18;">Talent Acquisition — Calculation Tracker</p>
+      <p style="font-size:13px;color:#888;margin:0 0 20px;text-align:center;">Select your name to continue.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+        <button onclick="pickName(this,'Roly')"    style="padding:12px;border:1.5px solid #e4e2da;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;background:#fff;color:#1a1a18;width:100%;">Roly</button>
+        <button onclick="pickName(this,'Vipul')"   style="padding:12px;border:1.5px solid #e4e2da;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;background:#fff;color:#1a1a18;width:100%;">Vipul</button>
+        <button onclick="pickName(this,'Kartikey')" style="padding:12px;border:1.5px solid #e4e2da;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;background:#fff;color:#1a1a18;width:100%;">Kartikey</button>
+        <button onclick="pickName(this,'Gaurav')"  style="padding:12px;border:1.5px solid #e4e2da;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;background:#fff;color:#1a1a18;width:100%;">Gaurav</button>
+        <button onclick="pickName(this,'Gloria')"  style="padding:12px;border:1.5px solid #e4e2da;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;background:#fff;color:#1a1a18;width:100%;">Gloria</button>
+        <button onclick="pickName(this,'Tenille')" style="padding:12px;border:1.5px solid #e4e2da;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;background:#fff;color:#1a1a18;width:100%;">Tenille</button>
+        <button onclick="pickName(this,'Josh')"    style="padding:12px;border:1.5px solid #e4e2da;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;background:#fff;color:#1a1a18;width:100%;">Josh</button>
+        <button onclick="pickName(this,'Admin')"   style="padding:12px;border:1.5px solid #e4e2da;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;background:#fff;color:#1a1a18;width:100%;">Admin</button>
+      </div>
+      <button onclick="goToPassword()" style="width:100%;padding:12px;background:#6c63ff;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;">Continue</button>
+    </div>
+
+    <div id="step-password" style="display:none;">
+      <p id="pw-title" style="font-size:17px;font-weight:600;margin:0 0 6px;text-align:center;color:#1a1a18;">Enter your password</p>
+      <p style="font-size:13px;color:#888;margin:0 0 20px;text-align:center;">Enter the password shared with you by your admin.</p>
+      <input type="password" id="pw-input" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()" style="width:100%;padding:10px 14px;border:1px solid #e4e2da;border-radius:8px;font-size:14px;outline:none;margin-bottom:10px;box-sizing:border-box;">
+      <div id="pw-error" style="font-size:12px;color:#dc2626;margin-bottom:10px;min-height:16px;"></div>
+      <button onclick="doLogin()" style="width:100%;padding:12px;background:#6c63ff;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;">Sign in</button>
+      <p onclick="backToNames()" style="font-size:13px;color:#888;cursor:pointer;text-align:center;margin-top:12px;">← Back</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════ APP ════ -->
+<div id="app-wrap">
+
+<header>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="width:30px;height:30px;background:#e02020;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;">M</div>
+      <span style="font-size:15px;font-weight:700;color:#1a1a18;">ManifestGlobal</span>
+    </div>
+    <div style="width:1px;height:22px;background:#e4e2da;"></div>
+    <span style="font-size:13px;color:#888;">Talent Acquisition — Calculation Tracker</span>
+  </div>
+  <div class="user-bar">
+    <div class="user-badge" id="header-user">—</div>
+    <button class="switch-btn" onclick="doSignOut()">Sign out</button>
+  </div>
+</header>
+
+<div class="hero">
+  <h1>Talent Acquisition — Calculation Tracker</h1>
+  <p>Use this each quarter to calculate your diverse pipeline %, identify where diverse candidates are dropping out, track interview panel equity, and monitor sourcing pipeline health.</p>
+  <div class="pill-row">
+    <span class="pill pill-blue">Diverse = Gender + Ethnicity</span>
+    <span class="pill pill-green">Self-declared only</span>
+    <span class="pill pill-amber">Exclude "prefer not to say"</span>
+    <span class="pill pill-purple">Panel = HM + cross-dept interviewer</span>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('calcB',this)">Pipeline Candidate Diversity</div>
+  <div class="tab" onclick="switchTab('calcC',this)">Funnel Drop-off</div>
+  <div class="tab" onclick="switchTab('calcD',this)">Interview Panel Diversity</div>
+  <div class="tab" onclick="switchTab('calcE',this)">Pipeline Coverage Ratio</div>
+  <div class="tab" onclick="switchTab('calcF',this)">Time-in-Pipeline</div>
+  <div class="tab" onclick="switchTab('calcG',this)">Post-Acceptance Withdrawal</div>
+  <div class="tab" onclick="switchTab('dailyReport',this)">Daily Report</div>
+  <div class="tab" onclick="switchTab('records',this)">Saved Records</div>
+  <div class="tab" onclick="switchTab('howto',this)">How to use</div>
+  <div class="tab" id="admin-tab" style="display:none;" onclick="switchTab('admin',this)">Admin</div>
+</div>
+
+<div class="main">
+
+  <!-- CALC B -->
+  <div class="section active" id="calcB">
+    <div class="card">
+      <div class="card-title">Select quarter & year</div>
+      <div class="qs-row" style="margin-bottom:0;">
+        <label>Quarter</label>
+        <select id="b-quarter" onchange="updatePeriod('b')">
+          <option value="Q1">Q1 (Jul–Sep)</option><option value="Q2">Q2 (Oct–Dec)</option>
+          <option value="Q3">Q3 (Jan–Mar)</option><option value="Q4">Q4 (Apr–Jun)</option>
+        </select>
+        <label>Year</label><select id="b-year" onchange="updatePeriod('b')"></select>
+        <span class="qs-period" id="b-period-label"></span>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="saveRecord('b')">Save this quarter</button>
+      <button class="btn btn-green" onclick="exportExcel('b')">Download as Excel</button>
+      <button class="btn clear-btn" onclick="clearSection('b')" style="display:none;">Clear all fields</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Pipeline candidate diversity by department</div>
+      <div class="card-sub">Enter candidates who answered the self-ID question and how many declared diverse (gender or ethnicity) per department.</div>
+      <span class="def-badge">Diverse = Gender + Ethnicity — all departments</span>
+      <div id="dept-list"></div>
+      <hr class="divider">
+      <div class="card-title" style="margin-bottom:14px;">Summary — <span id="b-summary-label"></span></div>
+      <div class="summary-grid">
+        <div class="s-card"><div class="s-lbl">Combined score</div><div class="s-val" id="b-overall">—</div><div class="s-sub">across all depts</div></div>
+        <div class="s-card"><div class="s-lbl">Departments on track</div><div class="s-val" id="b-ontrack">—</div><div class="s-sub">of 11 total</div></div>
+        <div class="s-card"><div class="s-lbl">Best performing</div><div class="s-val" id="b-best" style="font-size:13px;padding-top:6px;">—</div></div>
+        <div class="s-card"><div class="s-lbl">Needs attention</div><div class="s-val" id="b-worst" style="font-size:13px;padding-top:6px;">—</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CALC C -->
+  <div class="section" id="calcC">
+    <div class="card">
+      <div class="card-title">Select quarter & year</div>
+      <div class="qs-row" style="margin-bottom:0;">
+        <label>Quarter</label>
+        <select id="c-quarter" onchange="updatePeriod('c')">
+          <option value="Q1">Q1 (Jul–Sep)</option><option value="Q2">Q2 (Oct–Dec)</option>
+          <option value="Q3">Q3 (Jan–Mar)</option><option value="Q4">Q4 (Apr–Jun)</option>
+        </select>
+        <label>Year</label><select id="c-year" onchange="updatePeriod('c')"></select>
+        <span class="qs-period" id="c-period-label"></span>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="saveRecord('c')">Save this quarter</button>
+      <button class="btn btn-green" onclick="exportExcel('c')">Download as Excel</button>
+      <button class="btn clear-btn" onclick="clearSection('c')" style="display:none;">Clear all fields</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Funnel drop-off — where are we losing diverse candidates?</div>
+      <div class="card-sub">Enter diverse and total candidates at each stage. Flags where the biggest drop-off happens.</div>
+      <div id="funnel-inputs"></div>
+      <hr class="divider">
+      <div class="card-title" style="margin-bottom:14px;">Funnel visualisation</div>
+      <div id="funnel-bars"></div>
+      <div id="funnel-insight"></div>
+    </div>
+  </div>
+
+  <!-- CALC D -->
+  <div class="section" id="calcD">
+    <div class="card">
+      <div class="card-title">Select quarter & year</div>
+      <div class="qs-row" style="margin-bottom:0;">
+        <label>Quarter</label>
+        <select id="d-quarter" onchange="updatePeriod('d')">
+          <option value="Q1">Q1 (Jul–Sep)</option><option value="Q2">Q2 (Oct–Dec)</option>
+          <option value="Q3">Q3 (Jan–Mar)</option><option value="Q4">Q4 (Apr–Jun)</option>
+        </select>
+        <label>Year</label><select id="d-year" onchange="updatePeriod('d')"></select>
+        <span class="qs-period" id="d-period-label"></span>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-purple" onclick="saveRecord('d')">Save this quarter</button>
+      <button class="btn btn-green" onclick="exportExcel('d')">Download as Excel</button>
+      <button class="btn clear-btn" onclick="clearSection('d')" style="display:none;">Clear all fields</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Panel diversity definition</div>
+      <span class="def-badge def-badge-purple">Diverse panel = Hiring manager + at least 1 interviewer from a different department</span>
+      <div class="ex-box">
+        <div class="ex-row"><span style="color:#16a34a;font-weight:500;min-width:60px;">Counts</span><span>Engineering HM + Product Manager on panel. ✓</span></div>
+        <div class="ex-row"><span style="color:#16a34a;font-weight:500;min-width:60px;">Counts</span><span>Talent HM + Finance peer on panel. ✓</span></div>
+        <div class="ex-row"><span style="color:#dc2626;font-weight:500;min-width:60px;">Doesn't</span><span>Engineering HM + 2 Engineering peers only. ✗</span></div>
+        <div class="ex-row"><span style="color:#dc2626;font-weight:500;min-width:60px;">Doesn't</span><span>No HM present — cross-dept peers but no HM. ✗</span></div>
+        <div class="ex-row"><span style="color:#b45309;font-weight:500;min-width:60px;">Note</span><span>TA/HR do not count as cross-dept interviewer.</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Overall panel diversity — company-wide</div>
+      <div class="card-sub">Enter total panels and how many included HM + at least one cross-dept interviewer.</div>
+      <div class="ctrl"><label>Total interview panels held</label><input class="ni" type="number" min="0" max="9999" value="" placeholder="0" id="p-total" oninput="calcPanel()"></div>
+      <div class="ctrl"><label>Panels with HM + cross-dept IV</label><input class="ni" type="number" min="0" max="9999" value="" placeholder="0" id="p-div" oninput="calcPanel()"></div>
+      <div style="margin-top:16px;text-align:center;">
+        <div class="big-score" id="p-score" style="color:#aaa;">—</div>
+        <div style="font-size:12px;color:#888;margin-bottom:2px;">diverse panel coverage</div>
+        <div class="tgt-bar-wrap"><div class="tgt-bar-fill" id="p-bar" style="width:0%;background:#e4e2da;"></div></div>
+        <div class="tgt-labels"><span>0%</span><span style="color:#b45309;">70% target</span><span>100%</span></div>
+        <span id="p-tag"></span>
+      </div>
+      <div class="stat-row">
+        <div class="stat"><div class="lbl">Qualifying panels</div><div class="val" id="p-with">—</div></div>
+        <div class="stat"><div class="lbl">Non-qualifying</div><div class="val" id="p-without">—</div></div>
+        <div class="stat"><div class="lbl">More panels needed</div><div class="val" id="p-gap" style="font-size:14px;padding-top:4px;">—</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Interview panel diversity by department</div>
+      <div class="card-sub">Enter total panels and qualifying panels per department. Target ≥70%.</div>
+      <div id="dept-panel-list"></div>
+      <hr class="divider">
+      <div class="summary-grid">
+        <div class="s-card"><div class="s-lbl">Combined score</div><div class="s-val" id="dp-overall">—</div></div>
+        <div class="s-card"><div class="s-lbl">On track (≥70%)</div><div class="s-val" id="dp-ontrack">—</div></div>
+        <div class="s-card"><div class="s-lbl">Needs attention</div><div class="s-val" id="dp-worst" style="font-size:13px;padding-top:6px;">—</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CALC E -->
+  <div class="section" id="calcE">
+    <div class="card">
+      <div class="card-title">Select quarter & year</div>
+      <div class="qs-row" style="margin-bottom:0;">
+        <label>Quarter</label>
+        <select id="e-quarter" onchange="updatePeriod('e')">
+          <option value="Q1">Q1 (Jul–Sep)</option><option value="Q2">Q2 (Oct–Dec)</option>
+          <option value="Q3">Q3 (Jan–Mar)</option><option value="Q4">Q4 (Apr–Jun)</option>
+        </select>
+        <label>Year</label><select id="e-year" onchange="updatePeriod('e')"></select>
+        <span class="qs-period" id="e-period-label"></span>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="saveRecord('e')">Save this quarter</button>
+      <button class="btn btn-green" onclick="exportExcel('e')">Download as Excel</button>
+      <button class="btn clear-btn" onclick="clearSection('e')" style="display:none;">Clear all fields</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Pipeline coverage ratio — company-wide</div>
+      <div class="card-sub">Total active candidates ÷ open roles. Target ≥ 3×.</div>
+      <span class="def-badge">Formula: Active candidates ÷ Open roles = Coverage ratio &nbsp;|&nbsp; Target ≥ 3×</span>
+      <div class="ctrl"><label>Total active candidates</label><input class="ni" type="number" min="0" max="9999" value="" placeholder="0" id="e-cands" oninput="calcE()"></div>
+      <div class="ctrl"><label>Total open roles</label><input class="ni" type="number" min="0" max="9999" value="" placeholder="0" id="e-roles" oninput="calcE()"></div>
+      <div style="margin-top:16px;text-align:center;">
+        <div class="big-score" id="e-ratio" style="color:#aaa;">—</div>
+        <div style="font-size:12px;color:#888;margin-bottom:2px;">pipeline coverage ratio</div>
+        <div class="tgt-bar-wrap"><div class="tgt-bar-fill" id="e-bar" style="width:0%;background:#e4e2da;"></div></div>
+        <div class="tgt-labels"><span>0×</span><span style="color:#b45309;">3× target</span><span>6×</span></div>
+        <span id="e-tag"></span>
+      </div>
+      <div class="stat-row">
+        <div class="stat"><div class="lbl">Active candidates</div><div class="val" id="e-stat-cands">—</div></div>
+        <div class="stat"><div class="lbl">Open roles</div><div class="val" id="e-stat-roles">—</div></div>
+        <div class="stat"><div class="lbl">Candidates still needed</div><div class="val" id="e-gap" style="font-size:14px;padding-top:4px;">—</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Pipeline coverage ratio by department</div>
+      <div class="card-sub">Enter active candidates and open roles per department. Target ≥ 3×.</div>
+      <div id="e-dept-list"></div>
+      <hr class="divider">
+      <div class="summary-grid">
+        <div class="s-card"><div class="s-lbl">Overall ratio</div><div class="s-val" id="e-overall">—</div></div>
+        <div class="s-card"><div class="s-lbl">Depts on track (≥3×)</div><div class="s-val" id="e-ontrack">—</div></div>
+        <div class="s-card"><div class="s-lbl">Best coverage</div><div class="s-val" id="e-best" style="font-size:13px;padding-top:6px;">—</div></div>
+        <div class="s-card"><div class="s-lbl">Needs attention</div><div class="s-val" id="e-worst" style="font-size:13px;padding-top:6px;">—</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CALC F -->
+  <div class="section" id="calcF">
+    <div class="card">
+      <div class="card-title">Select month & year</div>
+      <div class="qs-row" style="margin-bottom:0;">
+        <label>Month</label>
+        <select id="f-month" onchange="updateFPeriod()">
+          <option value="Jan">January</option><option value="Feb">February</option><option value="Mar">March</option>
+          <option value="Apr">April</option><option value="May">May</option><option value="Jun">June</option>
+          <option value="Jul">July</option><option value="Aug">August</option><option value="Sep">September</option>
+          <option value="Oct">October</option><option value="Nov">November</option><option value="Dec">December</option>
+        </select>
+        <label>Year</label><select id="f-year" onchange="updateFPeriod()"></select>
+        <span class="qs-period" id="f-period-label"></span>
+      </div>
+    </div>
+    <div class="card" style="background:#fffbeb;border-color:#fde68a;">
+      <div style="font-size:13px;font-weight:600;color:#b45309;margin-bottom:8px;">What counts as a "sourced candidate" in this KPI</div>
+      <div style="font-size:13px;color:#78350f;line-height:1.8;">
+        A candidate is counted as sourced regardless of how they entered the pipeline — LinkedIn, referral, outreach, or inbound application — as long as a TA team member made a <strong>deliberate decision to match them to a specific open role</strong>.
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">
+          <div style="background:#f0fdf4;border-radius:8px;padding:10px 12px;font-size:12px;color:#14532d;"><strong>Counts as sourced</strong><br>LinkedIn outreach → matched<br>Referral → reviewed → matched<br>Inbound → TA reviewed → matched to role</div>
+          <div style="background:#fef2f2;border-radius:8px;padding:10px 12px;font-size:12px;color:#7f1d1d;"><strong>Does not count</strong><br>Inbound sitting unreviewed<br>Auto-rejected by system<br>Reviewed but no role found</div>
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="saveRecord('f')">Save this month</button>
+      <button class="btn btn-green" onclick="exportExcel('f')">Download as Excel</button>
+      <button class="btn clear-btn" onclick="clearSection('f')" style="display:none;">Clear all fields</button>
+    </div>
+    <div class="card">
+      <div class="card-title">% sourced candidates time-in-pipeline</div>
+      <div class="card-sub">Measures depth and quality of the pipeline. Tracks what % of all sourced candidates remain active after 1 full calendar month.</div>
+      <span class="def-badge def-badge-green">Formula: Active ≥ 1 month ÷ Total sourced candidates last month × 100 &nbsp;|&nbsp; Target: ≥60%</span>
+      <div style="background:#f5f4f0;border-radius:10px;padding:14px;margin-bottom:12px;">
+        <div style="font-size:12px;font-weight:600;color:#1a1a18;margin-bottom:10px;">Two sourcing streams — both count equally as sourced candidates</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div style="background:#eef2ff;border-radius:8px;padding:12px;font-size:12px;color:#3730a3;"><strong style="display:block;margin-bottom:6px;font-size:13px;">Stream 1 — Proactive sourcing</strong>LinkedIn outreach · Referrals · Direct outreach<br><br><span style="color:#4f46e5;">TA initiated the contact</span></div>
+          <div style="background:#f0fdf4;border-radius:8px;padding:12px;font-size:12px;color:#14532d;"><strong style="display:block;margin-bottom:6px;font-size:13px;">Stream 2 — Inbound sourcing</strong>Inbound applicant reviewed by TA and matched to a specific open role<br><br><span style="color:#16a34a;">TA made the matching decision</span></div>
+        </div>
+      </div>
+      <div style="background:#f5f4f0;border-radius:10px;padding:14px;margin-bottom:16px;">
+        <div style="font-size:12px;font-weight:600;color:#1a1a18;margin-bottom:10px;">Three conditions — a candidate counts as active only if ALL three are true</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;gap:10px;align-items:flex-start;font-size:13px;color:#444;"><div style="width:22px;height:22px;border-radius:50%;background:#eef2ff;color:#4f46e5;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</div><div><strong>Added at least 1 full calendar month before report date</strong><br><span style="color:#888;font-size:12px;">Reporting in April → candidate matched in March or earlier</span></div></div>
+          <div style="display:flex;gap:10px;align-items:flex-start;font-size:13px;color:#444;"><div style="width:22px;height:22px;border-radius:50%;background:#eef2ff;color:#4f46e5;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div><div><strong>Current stage is not a terminal stage</strong><br><span style="color:#888;font-size:12px;">Not Rejected, Withdrawn, or Offer Declined</span></div></div>
+          <div style="display:flex;gap:10px;align-items:flex-start;font-size:13px;color:#444;"><div style="width:22px;height:22px;border-radius:50%;background:#eef2ff;color:#4f46e5;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</div><div><strong>Last Greenhouse activity logged within past 30 days</strong><br><span style="color:#888;font-size:12px;">Stage change, note, or email — stale records do not count</span></div></div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+        <div>
+          <div style="font-size:12px;font-weight:600;color:#1a1a18;margin-bottom:8px;">By channel — enter sourced candidates</div>
+          <div class="ctrl"><label style="min-width:140px;">LinkedIn outreach</label><input class="ni" type="number" min="0" max="9999" value="" placeholder="0" id="f-linkedin" oninput="calcFChannels()"></div>
+          <div class="ctrl"><label style="min-width:140px;">Referrals</label><input class="ni" type="number" min="0" max="9999" value="" placeholder="0" id="f-referral" oninput="calcFChannels()"></div>
+          <div class="ctrl"><label style="min-width:140px;">Direct outreach</label><input class="ni" type="number" min="0" max="9999" value="" placeholder="0" id="f-outreach" oninput="calcFChannels()"></div>
+          <div class="ctrl"><label style="min-width:140px;">Inbound (TA matched)</label><input class="ni" type="number" min="0" max="9999" value="" placeholder="0" id="f-inbound" oninput="calcFChannels()"></div>
+          <div style="border-top:1px solid #e4e2da;margin-top:8px;padding-top:8px;display:flex;align-items:center;gap:10px;"><span style="font-size:12px;color:#666;min-width:140px;">Total sourced</span><span style="font-size:14px;font-weight:600;color:#1a1a18;" id="f-total-display">0</span><input type="hidden" id="f-total"></div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:600;color:#1a1a18;margin-bottom:8px;">Still active after ≥ 1 month</div>
+          <div class="ctrl"><label style="min-width:140px;">LinkedIn still active</label><input class="ni" type="number" min="0" max="9999" value="" placeholder="0" id="f-linkedin-a" oninput="calcFChannels()"></div>
+          <div class="ctrl"><label style="min-width:140px;">Referrals still active</label><input class="ni" type="number" min="0" max="9999" value="" placeholder="0" id="f-referral-a" oninput="calcFChannels()"></div>
+          <div class="ctrl"><label style="min-width:140px;">Direct outreach still active</label><input class="ni" type="number" min="0" max="9999" value="" placeholder="0" id="f-outreach-a" oninput="calcFChannels()"></div>
+          <div class="ctrl"><label style="min-width:140px;">Inbound still active</label><input class="ni" type="number" min="0" max="9999" value="" placeholder="0" id="f-inbound-a" oninput="calcFChannels()"></div>
+          <div style="border-top:1px solid #e4e2da;margin-top:8px;padding-top:8px;display:flex;align-items:center;gap:10px;"><span style="font-size:12px;color:#666;min-width:140px;">Total active</span><span style="font-size:14px;font-weight:600;color:#1a1a18;" id="f-active-display">0</span><input type="hidden" id="f-active"></div>
+        </div>
+      </div>
+      <div style="margin-top:16px;text-align:center;">
+        <div class="big-score" id="f-score" style="color:#aaa;">—</div>
+        <div style="font-size:12px;color:#888;margin-bottom:2px;">sourced candidates time-in-pipeline</div>
+        <div class="tgt-bar-wrap"><div class="tgt-bar-fill" id="f-bar" style="width:0%;background:#e4e2da;"></div></div>
+        <div class="tgt-labels"><span>0%</span><span style="color:#b45309;">60% target</span><span>100%</span></div>
+        <span id="f-tag"></span>
+      </div>
+      <div class="stat-row">
+        <div class="stat"><div class="lbl">Total sourced candidates</div><div class="val" id="f-stat-total">—</div></div>
+        <div class="stat"><div class="lbl">Still active ≥1 month</div><div class="val" id="f-stat-active">—</div></div>
+        <div class="stat"><div class="lbl">Dropped out</div><div class="val" id="f-stat-drop">—</div></div>
+        <div class="stat"><div class="lbl">Drop-out rate</div><div class="val" id="f-stat-droprate">—</div></div>
+      </div>
+      <hr class="divider">
+      <div style="font-size:12px;font-weight:600;color:#1a1a18;margin-bottom:10px;">Channel breakdown — retention rate per source</div>
+      <div id="f-channel-bars"><div style="font-size:13px;color:#aaa;">Enter data above to see channel breakdown.</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Time-in-pipeline by department</div>
+      <div class="card-sub">Enter total sourced candidates and how many stayed active ≥1 month per department.</div>
+      <div id="f-dept-list"></div>
+      <hr class="divider">
+      <div class="summary-grid">
+        <div class="s-card"><div class="s-lbl">Combined score</div><div class="s-val" id="f-overall">—</div></div>
+        <div class="s-card"><div class="s-lbl">Depts on track (≥60%)</div><div class="s-val" id="f-ontrack">—</div></div>
+        <div class="s-card"><div class="s-lbl">Best performing</div><div class="s-val" id="f-best" style="font-size:13px;padding-top:6px;">—</div></div>
+        <div class="s-card"><div class="s-lbl">Needs attention</div><div class="s-val" id="f-worst" style="font-size:13px;padding-top:6px;">—</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Monthly trend tracker</div>
+      <div class="card-sub">Your saved monthly records appear here so you can track improvement over time.</div>
+      <div id="f-trend-wrap"><div class="empty-state">No monthly records saved yet.</div></div>
+    </div>
+  </div>
+
+  <!-- CALC G -->
+  <div class="section" id="calcG">
+    <div class="card">
+      <div class="card-title">Select quarter & year</div>
+      <div class="qs-row" style="margin-bottom:0;">
+        <label>Quarter</label>
+        <select id="g-quarter" onchange="updatePeriod('g')">
+          <option value="Q1">Q1 (Jul–Sep)</option><option value="Q2">Q2 (Oct–Dec)</option>
+          <option value="Q3">Q3 (Jan–Mar)</option><option value="Q4">Q4 (Apr–Jun)</option>
+        </select>
+        <label>Year</label><select id="g-year" onchange="updatePeriod('g')"></select>
+        <span class="qs-period" id="g-period-label"></span>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="saveRecord('g')">Save this quarter</button>
+      <button class="btn btn-green" onclick="exportExcel('g')">Download as Excel</button>
+      <button class="btn clear-btn" onclick="clearSection('g')" style="display:none;">Clear all fields</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Post-acceptance withdrawal rate</div>
+      <div class="card-sub">Tracks how many candidates withdrew after formally accepting an offer, before their start date.</div>
+      <span class="def-badge" style="background:#fef2f2;color:#dc2626;">Formula: Withdrawals after acceptance ÷ Total accepted offers × 100 &nbsp;|&nbsp; Target: ≤5%</span>
+      <div style="background:#f5f4f0;border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px;color:#444;line-height:1.7;">
+        <strong>What counts:</strong> Candidate formally accepted (signed or verbally confirmed) but pulled out before first day.<br>
+        <strong>Does not count:</strong> Offer declines before acceptance · Rescinded offers by ManifestGlobal.<br>
+        <strong>Reporting period:</strong> Use the quarter the offer was accepted, not the quarter of withdrawal.
+      </div>
+      <div class="ctrl"><label>Total accepted offers</label><input class="ni" type="number" min="0" max="9999" value="" placeholder="0" id="g-total" oninput="calcG()"></div>
+      <div class="ctrl"><label>Withdrawals after acceptance</label><input class="ni" type="number" min="0" max="9999" value="" placeholder="0" id="g-withdrawn" oninput="calcG()"></div>
+      <div style="margin-top:16px;text-align:center;">
+        <div class="big-score" id="g-score" style="color:#aaa;">—</div>
+        <div style="font-size:12px;color:#888;margin-bottom:2px;">post-acceptance withdrawal rate</div>
+        <div class="tgt-bar-wrap"><div class="tgt-bar-fill" id="g-bar" style="width:0%;background:#e4e2da;"></div></div>
+        <div class="tgt-labels"><span>0%</span><span style="color:#b45309;">5% target ceiling</span><span>20%+</span></div>
+        <span id="g-tag"></span>
+      </div>
+      <div class="stat-row">
+        <div class="stat"><div class="lbl">Total accepted</div><div class="val" id="g-stat-total">—</div></div>
+        <div class="stat"><div class="lbl">Withdrawals</div><div class="val" id="g-stat-withdrawn">—</div></div>
+        <div class="stat"><div class="lbl">Successfully started</div><div class="val" id="g-stat-started">—</div></div>
+        <div class="stat"><div class="lbl">Retention after acceptance</div><div class="val" id="g-stat-retained">—</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Post-acceptance withdrawal by department</div>
+      <div class="card-sub">Enter accepted offers and withdrawals per department. Target ≤5%.</div>
+      <div id="g-dept-list"></div>
+      <hr class="divider">
+      <div class="summary-grid">
+        <div class="s-card"><div class="s-lbl">Overall withdrawal rate</div><div class="s-val" id="g-overall">—</div></div>
+        <div class="s-card"><div class="s-lbl">Depts on track (≤5%)</div><div class="s-val" id="g-ontrack">—</div></div>
+        <div class="s-card"><div class="s-lbl">Highest withdrawal</div><div class="s-val" id="g-worst" style="font-size:13px;padding-top:6px;">—</div></div>
+        <div class="s-card"><div class="s-lbl">Best retention</div><div class="s-val" id="g-best" style="font-size:13px;padding-top:6px;">—</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SAVED RECORDS -->
+  <div class="section" id="records">
+    <div class="card" id="dr-saved-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+        <div><div class="card-title">Daily Reports</div><div style="font-size:13px;color:#888;margin-top:2px;">Saved daily recruiting reports.</div></div>
+      </div>
+      <div id="dr-records-wrap"><div class="empty-state">No daily reports saved yet.</div></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+        <div><div class="card-title">Saved records</div><div style="font-size:13px;color:#888;margin-top:2px;">KPI calculation records saved by your team this session.</div></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <select id="filter-member" onchange="renderRecords()" style="padding:7px 12px;border:1px solid #e4e2da;border-radius:8px;font-size:13px;font-family:inherit;outline:none;background:#fff;"><option value="all">All team members</option></select>
+          <button class="btn btn-green" onclick="exportAllExcel()">Download all</button>
+          <button class="btn clear-btn" onclick="clearAllRecords()" style="display:none;">Clear all</button>
+        </div>
+      </div>
+      <div id="all-records-wrap"></div>
+    </div>
+  </div>
+
+  <!-- DAILY REPORT -->
+  <div class="section" id="dailyReport">
+
+    <!-- STEP 1: WHO ARE YOU + WHICH DEPT -->
+    <div class="card" id="dr-selector-card">
+      <div class="card-title">Daily Recruiting Progress Report</div>
+      <div class="card-sub">Select your name and department to open your personal report view.</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:8px;">
+        <div>
+          <div style="font-size:12px;font-weight:600;color:#1a1a18;margin-bottom:8px;">Who are you?</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <button class="dr-member-btn" onclick="selectDRMember(this,'Gloria','recruiter','#6c63ff')">Gloria</button>
+            <button class="dr-member-btn" onclick="selectDRMember(this,'Gaurav','recruiter','#2563eb')">Gaurav</button>
+            <button class="dr-member-btn" onclick="selectDRMember(this,'Vipul','recruiter','#16a34a')">Vipul</button>
+            <button class="dr-member-btn" onclick="selectDRMember(this,'Kartikey','sourcer','#9333ea')">Kartikey</button>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:600;color:#1a1a18;margin-bottom:8px;">Department</div>
+          <select id="dr-dept-sel" onchange="updateDRPreview()" style="width:100%;padding:8px 12px;border:1px solid #e4e2da;border-radius:8px;font-size:13px;font-family:inherit;outline:none;background:#fff;color:#1a1a18;">
+            <option value="">— Select department —</option>
+            <option>Talent</option>
+            <option>Finance</option>
+            <option>Central Marketing</option>
+            <option>Central Operations</option>
+            <option>Product</option>
+            <option>Engineering</option>
+            <option>Student Placement</option>
+            <option>Kaaiser</option>
+            <option>K12 Cialfo</option>
+            <option>K12 BridgeU</option>
+            <option>Explore</option>
+          </select>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:600;color:#1a1a18;margin-bottom:8px;">Report details</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;align-items:center;gap:8px;"><label style="font-size:12px;color:#666;min-width:60px;">Date</label><input type="date" id="dr-date" oninput="updateDRPreview()" style="flex:1;padding:6px 10px;border:1px solid #e4e2da;border-radius:8px;font-size:13px;font-family:inherit;outline:none;background:#fff;"></div>
+            <div style="display:flex;align-items:center;gap:8px;"><label style="font-size:12px;color:#666;min-width:60px;">Week #</label><input type="text" id="dr-week" placeholder="e.g. W16" oninput="updateDRPreview()" style="flex:1;padding:6px 10px;border:1px solid #e4e2da;border-radius:8px;font-size:13px;font-family:inherit;outline:none;background:#fff;"></div>
+          </div>
+        </div>
+      </div>
+      <div id="dr-active-banner" style="display:none;margin-top:16px;padding:10px 16px;border-radius:8px;background:#eef2ff;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div id="dr-banner-avatar" style="width:32px;height:32px;border-radius:50%;background:#6c63ff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;">?</div>
+          <div><div id="dr-banner-name" style="font-size:13px;font-weight:600;color:#1a1a18;">—</div><div id="dr-banner-meta" style="font-size:11px;color:#888;">—</div></div>
+        </div>
+        <button onclick="clearDRMember()" style="font-size:12px;color:#888;background:none;border:1px solid #e4e2da;border-radius:6px;padding:4px 10px;cursor:pointer;font-family:inherit;">Switch member</button>
+      </div>
+    </div>
+
+    <!-- INDIVIDUAL FORM (rendered dynamically) -->
+    <div id="dr-form-wrap" style="display:none;"></div>
+
+  </div>
+
+  <!-- HOW TO USE -->
+  <div class="section" id="howto">
+    <div class="card"><div class="card-title" style="font-size:17px;margin-bottom:2px;">Definitions & Calculations Guide</div><div class="card-sub">Reference this page to understand what each metric means, how it is calculated, and how to pull the data.</div></div>
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;"><div style="width:28px;height:28px;border-radius:50%;background:#eef2ff;color:#4f46e5;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;">1</div><div class="card-title" style="margin:0;">Pipeline Candidate Diversity</div><span style="font-size:11px;padding:3px 10px;border-radius:99px;background:#eef2ff;color:#4f46e5;font-weight:500;">Target ≥ 35–40% per dept</span></div>
+      <div class="how-box" style="margin-bottom:12px;"><strong>Definition:</strong> The % of candidates at each hiring stage who self-declare as belonging to an underrepresented group.<br><br><strong>Diverse = either Gender (woman/non-binary in underrepresented dept) OR Ethnicity (underrepresented group). Meeting one dimension is enough.</strong><br><br>Never infer from names or photos. Self-declaration only. Exclude "prefer not to say" from both counts.</div>
+      <div style="background:#f5f4f0;border-radius:10px;padding:14px;margin-bottom:12px;"><div style="font-size:12px;font-weight:600;color:#1a1a18;margin-bottom:8px;">Formula</div><div style="font-size:13px;color:#444;line-height:1.9;"><strong>Score = (Declared diverse ÷ Answered self-ID) × 100</strong><br>Example: 28 diverse out of 80 responded = <strong>35%</strong></div></div>
+      <div class="step-row"><div class="step-num">1</div><div class="step-txt">Greenhouse → Reports → Diversity → Pipeline by stage. Filter by quarter.</div></div>
+      <div class="step-row"><div class="step-num">2</div><div class="step-txt">Export CSV. Remove blank and "prefer not to say" rows per department.</div></div>
+      <div class="step-row"><div class="step-num">3</div><div class="step-txt">Count rows where gender = Woman/Non-binary OR ethnicity = underrepresented. Divide by total who answered × 100.</div></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;"><div style="width:28px;height:28px;border-radius:50%;background:#f0fdf4;color:#16a34a;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;">2</div><div class="card-title" style="margin:0;">Funnel Drop-off</div><span style="font-size:11px;padding:3px 10px;border-radius:99px;background:#f0fdf4;color:#16a34a;font-weight:500;">Diagnostic — no single target</span></div>
+      <div class="how-box"><strong>Score = (Diverse at stage ÷ Total at stage) × 100</strong><br>A drop of ≥ 8pts between any two stages = bias risk flag.</div>
+    </div>
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;"><div style="width:28px;height:28px;border-radius:50%;background:#f5f3ff;color:#7c3aed;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;">3</div><div class="card-title" style="margin:0;">Interview Panel Diversity</div><span style="font-size:11px;padding:3px 10px;border-radius:99px;background:#f5f3ff;color:#7c3aed;font-weight:500;">Target ≥ 70%</span></div>
+      <div class="how-box"><strong>Score = (Qualifying panels ÷ Total panels) × 100</strong><br>Qualifying = HM present + at least 1 cross-dept interviewer. TA/HR do not count as cross-dept.</div>
+    </div>
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;"><div style="width:28px;height:28px;border-radius:50%;background:#fef3c7;color:#b45309;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;">4</div><div class="card-title" style="margin:0;">Pipeline Coverage Ratio</div><span style="font-size:11px;padding:3px 10px;border-radius:99px;background:#fffbeb;color:#b45309;font-weight:500;">Target ≥ 3×</span></div>
+      <div class="how-box"><strong>Ratio = Total active candidates ÷ Total open roles</strong><br>Example: 90 candidates, 25 roles = 3.6× ✓. Below 3× = pipeline is thin.</div>
+    </div>
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;"><div style="width:28px;height:28px;border-radius:50%;background:#f0fdf4;color:#16a34a;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;">5</div><div class="card-title" style="margin:0;">% Sourced Candidates Time-in-Pipeline</div><span style="font-size:11px;padding:3px 10px;border-radius:99px;background:#f0fdf4;color:#16a34a;font-weight:500;">Target ≥ 60% — Monthly</span></div>
+      <div class="how-box"><strong>Score = (Active ≥ 1 month ÷ Total sourced last month) × 100</strong><br>Counts both proactive sourcing AND inbound applicants TA matched to a role. Active = not terminal stage + Greenhouse activity within 30 days.</div>
+    </div>
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;"><div style="width:28px;height:28px;border-radius:50%;background:#fef2f2;color:#dc2626;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;">6</div><div class="card-title" style="margin:0;">Post-Acceptance Withdrawal Rate</div><span style="font-size:11px;padding:3px 10px;border-radius:99px;background:#fef2f2;color:#dc2626;font-weight:500;">Target ≤ 5%</span></div>
+      <div class="how-box"><strong>Rate = (Withdrawals after acceptance ÷ Total accepted offers) × 100</strong><br>Count only candidate-initiated withdrawals. Rescinded offers by ManifestGlobal excluded.</div>
+      <div class="step-row"><div class="step-num">1</div><div class="step-txt">Filter Greenhouse by Offer Accepted for the quarter. Count total — this is your denominator.</div></div>
+      <div class="step-row"><div class="step-num">2</div><div class="step-txt">Count those who later withdrew or did not start. This is your numerator.</div></div>
+    </div>
+    <div class="card"><div class="card-title" style="margin-bottom:12px;">Company quarter calendar</div><div class="how-box"><strong>Q1</strong> — July, August, September<br><strong>Q2</strong> — October, November, December<br><strong>Q3</strong> — January, February, March<br><strong>Q4</strong> — April, May, June</div></div>
+    <div class="card"><div class="card-title" style="margin-bottom:12px;">Golden rules</div><div class="how-box"><strong>1.</strong> Denominator = responded only. Never total applicants.<br><strong>2.</strong> Self-declared only — never infer from names or photos.<br><strong>3.</strong> Measure each stage separately.<br><strong>4.</strong> Fewer than 20 responses = record "insufficient data".<br><strong>5.</strong> Don't change definitions mid-cycle.<br><strong>6.</strong> Sourced only for Time-in-Pipeline — no unreviewed inbound.</div></div>
+  </div>
+
+  <!-- ADMIN -->
+  <div class="section" id="admin">
+    <div class="card">
+      <div class="card-title">Admin panel</div>
+      <div class="card-sub">Manage team member access. Update passwords or disable members. Only visible to Admin.</div>
+      <div id="admin-member-list"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Change admin password</div>
+      <div class="card-sub">Update the admin password used to access this panel.</div>
+      <div class="pw-field-row"><input type="password" id="new-admin-pw" placeholder="New admin password"><button class="btn btn-primary" onclick="changeAdminPw()">Update</button></div>
+      <div id="admin-pw-msg" style="font-size:12px;margin-top:8px;min-height:16px;"></div>
+    </div>
+  </div>
+
+</div><!-- end main -->
+</div><!-- end app-wrap -->
+
+<footer>Talent Acquisition — Calculation Tracker &nbsp;·&nbsp; ManifestGlobal. For internal TA team use only. Data is not saved to any server.</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var MEMBERS_CONFIG=[
+  {name:'Roly',    password:'Roly@2026',    disabled:false},
+  {name:'Vipul',   password:'Vipul@2026',   disabled:false},
+  {name:'Kartikey',password:'Kartikey@2026',disabled:false},
+  {name:'Gaurav',  password:'Gaurav@2026',  disabled:false},
+  {name:'Gloria',  password:'Gloria@2026',  disabled:false},
+  {name:'Tenille', password:'Tenille@2026', disabled:false},
+  {name:'Josh',    password:'Josh@2026',    disabled:false}
+];
+var ADMIN_PASSWORD='Admin@2026';
+var MEMBER_COLORS={Roly:'#6c63ff',Vipul:'#16a34a',Kartikey:'#e02020',Gaurav:'#d97706',Gloria:'#7c3aed',Tenille:'#0891b2',Josh:'#be185d',Admin:'#1a1a18'};
+var CLEAR_ACCESS=['Roly','Josh','Tenille','Admin'];
+var DEPTS=['K12 Cialfo','K12 BridgeU','Student Placement','Explore','Kaaiser','Talent','Finance','Product','Central Operations','Central Marketing','Engineering'];
+var DEPT_TARGETS=[35,35,35,35,35,40,35,40,35,40,35];
+var FSTAGES=['Applied','Screened','Interviewed','Offered'];
+var QP={Q1:{label:'Jul–Sep'},Q2:{label:'Oct–Dec'},Q3:{label:'Jan–Mar'},Q4:{label:'Apr–Jun'}};
+var DTARGET=70,ETARGET=3,FTARGET=60;
+var currentUser=null,selectedMember=null,records=[];
+
+/* ── LOGIN ── */
+function pickName(btn,name){
+  var all=document.querySelectorAll('#step-name .grid-btn');
+  all.forEach(function(b){b.style.background='#fff';b.style.color='#1a1a18';b.style.borderColor='#e4e2da';});
+  btn.style.background='#6c63ff';btn.style.color='#fff';btn.style.borderColor='#6c63ff';
+  var cfg=MEMBERS_CONFIG.concat([{name:'Admin',password:ADMIN_PASSWORD,disabled:false}]);
+  selectedMember=cfg.find(function(m){return m.name===name;})||null;
+}
+function goToPassword(){
+  if(!selectedMember){showToast('Please select your name.');return;}
+  document.getElementById('step-name').style.display='none';
+  document.getElementById('step-password').style.display='block';
+  document.getElementById('pw-title').textContent='Welcome, '+selectedMember.name;
+  document.getElementById('pw-input').value='';
+  document.getElementById('pw-error').textContent='';
+  setTimeout(function(){document.getElementById('pw-input').focus();},100);
+}
+function doLogin(){
+  var entered=document.getElementById('pw-input').value;
+  var ok=(selectedMember.name==='Admin')?(entered===ADMIN_PASSWORD):(entered===selectedMember.password);
+  if(ok){
+    currentUser=selectedMember.name;
+    document.getElementById('login-wrap').style.display='none';
+    document.getElementById('app-wrap').style.display='block';
+    updateHeaderUser();
+    updateClearButtons();
+    var isAdmin=(currentUser==='Admin');
+    document.getElementById('admin-tab').style.display=isAdmin?'block':'none';
+    if(isAdmin)buildAdminPanel();
+  } else {
+    document.getElementById('pw-error').textContent='Incorrect password. Please try again.';
+    document.getElementById('pw-input').value='';
+  }
+}
+function backToNames(){
+  document.getElementById('step-password').style.display='none';
+  document.getElementById('step-name').style.display='block';
+  selectedMember=null;
+  document.querySelectorAll('#step-name .grid-btn').forEach(function(b){b.style.background='#fff';b.style.color='#1a1a18';b.style.borderColor='#e4e2da';});
+}
+function doSignOut(){
+  currentUser=null;selectedMember=null;
+  document.getElementById('step-password').style.display='none';
+  document.getElementById('step-name').style.display='block';
+  document.querySelectorAll('#step-name .grid-btn').forEach(function(b){b.style.background='#fff';b.style.color='#1a1a18';b.style.borderColor='#e4e2da';});
+  document.getElementById('app-wrap').style.display='none';
+  document.getElementById('login-wrap').style.display='flex';
+  refreshDisabledStates();
+}
+function refreshDisabledStates(){
+  var cfg=MEMBERS_CONFIG.concat([{name:'Admin',password:ADMIN_PASSWORD,disabled:false}]);
+  document.querySelectorAll('#step-name .grid-btn').forEach(function(btn){
+    var name=btn.getAttribute('data-name');
+    var m=cfg.find(function(x){return x.name===name;});
+    if(m&&m.disabled){btn.disabled=true;btn.style.opacity='.45';btn.style.textDecoration='line-through';btn.textContent=m.name+' (disabled)';}
+    else{btn.disabled=false;btn.style.opacity='1';btn.style.textDecoration='none';if(m)btn.textContent=m.name;}
+  });
+}
+function updateClearButtons(){
+  var show=CLEAR_ACCESS.indexOf(currentUser)>=0;
+  document.querySelectorAll('.clear-btn').forEach(function(b){b.style.display=show?'inline-flex':'none';});
+}
+function updateHeaderUser(){
+  var col=MEMBER_COLORS[currentUser]||'#6c63ff';
+  document.getElementById('header-user').innerHTML='<div style="width:22px;height:22px;border-radius:50%;background:'+col+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;">'+currentUser[0]+'</div>'+currentUser;
+}
+
+/* ── ADMIN ── */
+function buildAdminPanel(){
+  var list=document.getElementById('admin-member-list');list.innerHTML='';
+  MEMBERS_CONFIG.forEach(function(m,i){
+    var col=MEMBER_COLORS[m.name]||'#888';
+    var row=document.createElement('div');row.className='admin-row';
+    row.innerHTML='<div style="display:flex;align-items:center;gap:10px;"><div style="width:32px;height:32px;border-radius:50%;background:'+col+';display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;">'+m.name[0]+'</div><div><div style="font-size:13px;font-weight:600;">'+m.name+'</div><div style="font-size:11px;color:#888;">Password: '+m.password+'</div></div><span class="admin-status '+(m.disabled?'disabled':'active')+'">'+(m.disabled?'Disabled':'Active')+'</span></div>'
+    +'<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><div class="pw-field-row"><input type="text" id="mpw'+i+'" value="'+m.password+'" placeholder="New password"><button class="btn btn-primary" onclick="changeMemberPw('+i+')">Update</button></div><button class="btn '+(m.disabled?'btn-green':'btn-red')+'" onclick="toggleMember('+i+')">'+(m.disabled?'Enable':'Disable')+'</button></div>';
+    list.appendChild(row);
+  });
+}
+function changeMemberPw(i){var v=document.getElementById('mpw'+i).value.trim();if(!v){showToast('Cannot be empty.');return;}MEMBERS_CONFIG[i].password=v;buildAdminPanel();showToast(MEMBERS_CONFIG[i].name+"'s password updated.");}
+function toggleMember(i){MEMBERS_CONFIG[i].disabled=!MEMBERS_CONFIG[i].disabled;buildAdminPanel();refreshDisabledStates();showToast(MEMBERS_CONFIG[i].name+' is now '+(MEMBERS_CONFIG[i].disabled?'disabled':'enabled')+'.');}
+function changeAdminPw(){var v=document.getElementById('new-admin-pw').value.trim();if(!v){document.getElementById('admin-pw-msg').textContent='Cannot be empty.';document.getElementById('admin-pw-msg').style.color='#dc2626';return;}ADMIN_PASSWORD=v;document.getElementById('admin-pw-msg').textContent='Admin password updated.';document.getElementById('admin-pw-msg').style.color='#16a34a';document.getElementById('new-admin-pw').value='';}
+
+/* ── HELPERS ── */
+function populateYears(id){var s=document.getElementById(id);if(!s)return;var y=new Date().getFullYear();for(var i=y-1;i<=y+2;i++){var o=document.createElement('option');o.value=i;o.textContent='FY'+i;if(i===y)o.selected=true;s.appendChild(o);}}
+function populateFYears(){var s=document.getElementById('f-year');if(!s)return;var y=new Date().getFullYear();for(var i=y-1;i<=y+2;i++){var o=document.createElement('option');o.value=i;o.textContent=i;if(i===y)o.selected=true;s.appendChild(o);}var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];document.getElementById('f-month').value=months[new Date().getMonth()];updateFPeriod();}
+function getPeriod(p){var q=document.getElementById(p+'-quarter').value,y=document.getElementById(p+'-year').value;return{short:q+' FY'+y,full:q+' FY'+y+' ('+QP[q].label+')'};}
+function updatePeriod(p){var d=getPeriod(p);document.getElementById(p+'-period-label').textContent=d.full;if(p==='b')document.getElementById('b-summary-label').textContent=d.short;}
+function updateFPeriod(){var m=document.getElementById('f-month').value,y=document.getElementById('f-year').value;document.getElementById('f-period-label').textContent=m+' '+y;}
+function badgeHtml(s,t){if(s===null)return'<span class="badge badge-amber">No data</span>';if(s>=t)return'<span class="badge badge-green">On track</span>';if(s>=t*0.85)return'<span class="badge badge-amber">Near target</span>';return'<span class="badge badge-red">Below target</span>';}
+function bColor(s,t){return s>=t?'#16a34a':s>=t*0.85?'#d97706':'#dc2626';}
+function bColorRatio(r){return r>=ETARGET?'#16a34a':r>=ETARGET*0.75?'#d97706':'#dc2626';}
+
+/* ── CALC B ── */
+function buildDepts(){var c=document.getElementById('dept-list');if(!c)return;c.innerHTML='';DEPTS.forEach(function(d,i){var el=document.createElement('div');el.className='dept-item';el.innerHTML='<div class="dept-name">'+d+' <span style="font-weight:400;color:#aaa;font-size:11px;">target '+DEPT_TARGETS[i]+'%</span></div><div class="ctrl"><label>Answered self-ID</label><input class="ni" type="number" min="0" max="9999" value="" placeholder="0" id="dr'+i+'" oninput="calcB()"></div><div class="ctrl"><label>Declared diverse</label><input class="ni" type="number" min="0" max="9999" value="" placeholder="0" id="dd'+i+'" oninput="calcB()"></div><div class="result-row"><div class="bar-wrap"><div class="bar-fill" id="dbar'+i+'" style="width:0%;background:#e4e2da;"></div></div><span class="pct-val" id="dpct'+i+'" style="color:#aaa;">—</span><span id="dtag'+i+'"><span class="badge badge-amber">No data</span></span></div>';c.appendChild(el);});}
+function calcB(){var tR=0,tD=0,onT=0,ws=false,best={n:'',s:-1},worst={n:'',s:101};DEPTS.forEach(function(d,i){var t=DEPT_TARGETS[i],r=parseInt(document.getElementById('dr'+i).value)||0,dv=Math.min(parseInt(document.getElementById('dd'+i).value)||0,r);if(r>0){var s=Math.round((dv/r)*100);document.getElementById('dpct'+i).textContent=s+'%';document.getElementById('dpct'+i).style.color=bColor(s,t);document.getElementById('dbar'+i).style.width=s+'%';document.getElementById('dbar'+i).style.background=bColor(s,t);document.getElementById('dtag'+i).innerHTML=badgeHtml(s,t);tR+=r;tD+=dv;if(s>=t)onT++;if(s>best.s)best={n:d,s:s};if(!ws||s<worst.s){worst={n:d,s:s};ws=true;}}else{document.getElementById('dpct'+i).textContent='—';document.getElementById('dpct'+i).style.color='#aaa';document.getElementById('dbar'+i).style.width='0%';document.getElementById('dbar'+i).style.background='#e4e2da';document.getElementById('dtag'+i).innerHTML='<span class="badge badge-amber">No data</span>';}});if(tR>0){var ov=Math.round((tD/tR)*100);document.getElementById('b-overall').textContent=ov+'%';document.getElementById('b-ontrack').textContent=onT+' / '+DEPTS.length;document.getElementById('b-best').textContent=best.s>-1?best.n+' ('+best.s+'%)':'—';document.getElementById('b-worst').textContent=ws?worst.n+' ('+worst.s+'%)':'—';}else{['b-overall','b-ontrack','b-best','b-worst'].forEach(function(id){document.getElementById(id).textContent='—';});}}
+
+/* ── CALC C ── */
+function buildFunnel(){var inp=document.getElementById('funnel-inputs');if(!inp)return;inp.innerHTML='';FSTAGES.forEach(function(s,i){var row=document.createElement('div');row.className='funnel-stage';row.innerHTML='<span class="funnel-stage-lbl">'+s+'</span><input class="ni" type="number" min="0" max="9999" value="" placeholder="Diverse" id="fd'+i+'" oninput="calcC()"><span class="sep">diverse out of</span><input class="ni" type="number" min="0" max="9999" value="" placeholder="Total" id="ft'+i+'" oninput="calcC()"><span style="font-size:13px;font-weight:600;min-width:42px;" id="fpct'+i+'">—</span>';inp.appendChild(row);});}
+function calcC(){var vals=FSTAGES.map(function(_,i){var d=parseInt(document.getElementById('fd'+i).value)||0,t=parseInt(document.getElementById('ft'+i).value)||0;return t>0?Math.round((Math.min(d,t)/t)*100):null;});vals.forEach(function(v,i){var el=document.getElementById('fpct'+i);el.textContent=v!==null?v+'%':'—';el.style.color=v!==null?(v>=35?'#16a34a':v>=25?'#d97706':'#dc2626'):'#aaa';});var bars=document.getElementById('funnel-bars');bars.innerHTML='';FSTAGES.forEach(function(s,i){var v=vals[i],col=v!==null?(v>=35?'#16a34a':v>=25?'#d97706':'#dc2626'):'#e4e2da';var row=document.createElement('div');row.className='funnel-bar-row';row.innerHTML='<span class="funnel-bar-lbl">'+s+'</span><div class="funnel-bar-wrap"><div class="funnel-bar-fill" style="width:'+(v||0)+'%;background:'+col+';"></div></div><span class="funnel-bar-pct" style="color:'+col+'">'+(v!==null?v+'%':'—')+'</span>';bars.appendChild(row);});var ins=document.getElementById('funnel-insight'),filled=vals.filter(function(v){return v!==null;});if(filled.length<2){ins.innerHTML='';return;}var bigDrop=0,dropStage='';for(var i=1;i<vals.length;i++){if(vals[i]!==null&&vals[i-1]!==null){var drop=vals[i-1]-vals[i];if(drop>bigDrop){bigDrop=drop;dropStage=FSTAGES[i-1]+' → '+FSTAGES[i];}}}if(bigDrop>=8){ins.className='insight-box insight-red';ins.innerHTML='<strong>Bias risk flagged:</strong> Biggest drop at '+dropStage+' (−'+bigDrop+'pts).';}else if(bigDrop>=4){ins.className='insight-box insight-amber';ins.innerHTML='<strong>Worth monitoring:</strong> Moderate drop at '+dropStage+' (−'+bigDrop+'pts).';}else{ins.className='insight-box insight-green';ins.innerHTML='<strong>Looking good:</strong> No significant drop-off detected.';}}
+
+/* ── CALC D ── */
+function buildDeptPanels(){var c=document.getElementById('dept-panel-list');if(!c)return;c.innerHTML='';DEPTS.forEach(function(d,i){var row=document.createElement('div');row.className='dept-row';row.innerHTML='<span class="dept-lbl">'+d+'</span><input class="di" type="number" min="0" max="999" value="" placeholder="Total" id="pt'+i+'" oninput="calcDeptPanels()"><span style="font-size:11px;color:#aaa;">panels,</span><input class="di" type="number" min="0" max="999" value="" placeholder="Qualify" id="pd'+i+'" oninput="calcDeptPanels()"><span style="font-size:11px;color:#aaa;">qualifying</span><div class="dept-bar-wrap"><div class="dept-bar-fill" id="pb'+i+'" style="width:0%;background:#e4e2da;"></div></div><span class="dept-pct" id="pp'+i+'" style="color:#aaa;">—</span><span id="ptag'+i+'"></span>';c.appendChild(row);});}
+function calcPanel(){var total=parseInt(document.getElementById('p-total').value)||0,div=Math.min(parseInt(document.getElementById('p-div').value)||0,total);if(total>0){var s=Math.round((div/total)*100),needed=Math.max(0,Math.ceil(DTARGET/100*total)-div);document.getElementById('p-score').textContent=s+'%';document.getElementById('p-score').style.color=bColor(s,DTARGET);document.getElementById('p-bar').style.width=s+'%';document.getElementById('p-bar').style.background=bColor(s,DTARGET);document.getElementById('p-tag').innerHTML=badgeHtml(s,DTARGET);document.getElementById('p-with').textContent=div;document.getElementById('p-without').textContent=total-div;document.getElementById('p-gap').textContent=needed>0?needed+' more panels':'Already met';document.getElementById('p-gap').style.color=needed>0?'#dc2626':'#16a34a';}else{document.getElementById('p-score').textContent='—';document.getElementById('p-score').style.color='#aaa';document.getElementById('p-bar').style.width='0%';document.getElementById('p-tag').innerHTML='';['p-with','p-without','p-gap'].forEach(function(id){document.getElementById(id).textContent='—';});}}
+function calcDeptPanels(){var tR=0,tD=0,onT=0,ws=false,worst={n:'',s:101};DEPTS.forEach(function(d,i){var total=parseInt(document.getElementById('pt'+i).value)||0,div=Math.min(parseInt(document.getElementById('pd'+i).value)||0,total);if(total>0){var s=Math.round((div/total)*100);document.getElementById('pp'+i).textContent=s+'%';document.getElementById('pp'+i).style.color=bColor(s,DTARGET);document.getElementById('pb'+i).style.width=s+'%';document.getElementById('pb'+i).style.background=bColor(s,DTARGET);document.getElementById('ptag'+i).innerHTML=badgeHtml(s,DTARGET);tR+=total;tD+=div;if(s>=DTARGET)onT++;if(!ws||s<worst.s){worst={n:d,s:s};ws=true;}}else{document.getElementById('pp'+i).textContent='—';document.getElementById('pp'+i).style.color='#aaa';document.getElementById('pb'+i).style.width='0%';document.getElementById('pb'+i).style.background='#e4e2da';document.getElementById('ptag'+i).innerHTML='';}});if(tR>0){document.getElementById('dp-overall').textContent=Math.round((tD/tR)*100)+'%';document.getElementById('dp-ontrack').textContent=onT+' / '+DEPTS.length;document.getElementById('dp-worst').textContent=ws?worst.n+' ('+worst.s+'%)':'—';}else{['dp-overall','dp-ontrack','dp-worst'].forEach(function(id){document.getElementById(id).textContent='—';});}}
+
+/* ── CALC E ── */
+function buildEDepts(){var c=document.getElementById('e-dept-list');if(!c)return;c.innerHTML='';DEPTS.forEach(function(d,i){var row=document.createElement('div');row.className='dept-row';row.innerHTML='<span class="dept-lbl">'+d+'</span><input class="di" type="number" min="0" max="999" value="" placeholder="Candidates" id="ec'+i+'" oninput="calcEDepts()"><span style="font-size:11px;color:#aaa;">active,</span><input class="di" type="number" min="0" max="999" value="" placeholder="Roles" id="er'+i+'" oninput="calcEDepts()"><span style="font-size:11px;color:#aaa;">open roles</span><div class="dept-bar-wrap"><div class="dept-bar-fill" id="ebar'+i+'" style="width:0%;background:#e4e2da;"></div></div><span class="dept-pct" id="epct'+i+'" style="color:#aaa;">—</span><span id="etag'+i+'"></span>';c.appendChild(row);});}
+function calcE(){var c=parseInt(document.getElementById('e-cands').value)||0,r=parseInt(document.getElementById('e-roles').value)||0;document.getElementById('e-stat-cands').textContent=c||'—';document.getElementById('e-stat-roles').textContent=r||'—';if(r>0){var ratio=c/r,col=bColorRatio(ratio);document.getElementById('e-ratio').textContent=ratio.toFixed(1)+'×';document.getElementById('e-ratio').style.color=col;document.getElementById('e-bar').style.width=Math.min((ratio/6)*100,100)+'%';document.getElementById('e-bar').style.background=col;document.getElementById('e-tag').innerHTML=ratio>=ETARGET?'<span class="badge badge-green">On track</span>':ratio>=ETARGET*0.75?'<span class="badge badge-amber">Near target</span>':'<span class="badge badge-red">Below target</span>';var needed=Math.max(0,Math.ceil(ETARGET*r)-c);document.getElementById('e-gap').textContent=needed>0?needed+' more needed':'Already met';document.getElementById('e-gap').style.color=needed>0?'#dc2626':'#16a34a';}else{document.getElementById('e-ratio').textContent='—';document.getElementById('e-ratio').style.color='#aaa';document.getElementById('e-bar').style.width='0%';document.getElementById('e-tag').innerHTML='';document.getElementById('e-gap').textContent='—';}}
+function calcEDepts(){var tC=0,tR=0,onT=0,ws=false,best={n:'',s:-1},worst={n:'',s:999};DEPTS.forEach(function(d,i){var c=parseInt(document.getElementById('ec'+i).value)||0,r=parseInt(document.getElementById('er'+i).value)||0;if(r>0){var ratio=c/r,col=bColorRatio(ratio);document.getElementById('epct'+i).textContent=ratio.toFixed(1)+'×';document.getElementById('epct'+i).style.color=col;document.getElementById('ebar'+i).style.width=Math.min((ratio/6)*100,100)+'%';document.getElementById('ebar'+i).style.background=col;document.getElementById('etag'+i).innerHTML=ratio>=ETARGET?'<span class="badge badge-green">On track</span>':ratio>=ETARGET*0.75?'<span class="badge badge-amber">Near target</span>':'<span class="badge badge-red">Below target</span>';tC+=c;tR+=r;if(ratio>=ETARGET)onT++;if(ratio>best.s)best={n:d,s:ratio};if(!ws||ratio<worst.s){worst={n:d,s:ratio};ws=true;}}else{document.getElementById('epct'+i).textContent='—';document.getElementById('epct'+i).style.color='#aaa';document.getElementById('ebar'+i).style.width='0%';document.getElementById('ebar'+i).style.background='#e4e2da';document.getElementById('etag'+i).innerHTML='';}});if(tR>0){document.getElementById('e-overall').textContent=(tC/tR).toFixed(1)+'×';document.getElementById('e-ontrack').textContent=onT+' / '+DEPTS.length;document.getElementById('e-best').textContent=best.s>-1?best.n+' ('+best.s.toFixed(1)+'×)':'—';document.getElementById('e-worst').textContent=ws?worst.n+' ('+worst.s.toFixed(1)+'×)':'—';}else{['e-overall','e-ontrack','e-best','e-worst'].forEach(function(id){document.getElementById(id).textContent='—';});}}
+
+/* ── CALC F ── */
+function buildFDepts(){var c=document.getElementById('f-dept-list');if(!c)return;c.innerHTML='';DEPTS.forEach(function(d,i){var row=document.createElement('div');row.className='dept-row';row.innerHTML='<span class="dept-lbl">'+d+'</span><input class="di" type="number" min="0" max="999" value="" placeholder="Sourced" id="fs'+i+'" oninput="calcFDepts()"><span style="font-size:11px;color:#aaa;">sourced,</span><input class="di" type="number" min="0" max="999" value="" placeholder="Active" id="fa'+i+'" oninput="calcFDepts()"><span style="font-size:11px;color:#aaa;">active ≥1mo</span><div class="dept-bar-wrap"><div class="dept-bar-fill" id="fbar'+i+'" style="width:0%;background:#e4e2da;"></div></div><span class="dept-pct" id="fpct'+i+'" style="color:#aaa;">—</span><span id="ftag'+i+'"></span>';c.appendChild(row);});}
+function calcFChannels(){var chs=['linkedin','referral','outreach','inbound'];var tm=0,ta=0;chs.forEach(function(ch){var t=parseInt(document.getElementById('f-'+ch).value)||0;var a=Math.min(parseInt(document.getElementById('f-'+ch+'-a').value)||0,t);tm+=t;ta+=a;});document.getElementById('f-total').value=tm;document.getElementById('f-active').value=ta;document.getElementById('f-total-display').textContent=tm;document.getElementById('f-active-display').textContent=ta;var bars=document.getElementById('f-channel-bars');bars.innerHTML='';var labels={linkedin:'LinkedIn',referral:'Referral',outreach:'Direct outreach',inbound:'Inbound (TA matched)'};chs.forEach(function(ch){var t=parseInt(document.getElementById('f-'+ch).value)||0;var a=Math.min(parseInt(document.getElementById('f-'+ch+'-a').value)||0,t);if(t>0){var s=Math.round((a/t)*100),col=bColor(s,FTARGET);var row=document.createElement('div');row.className='funnel-bar-row';row.innerHTML='<span class="funnel-bar-lbl" style="min-width:140px;">'+labels[ch]+'</span><div class="funnel-bar-wrap"><div class="funnel-bar-fill" style="width:'+s+'%;background:'+col+';"></div></div><span class="funnel-bar-pct" style="color:'+col+';">'+s+'%</span><span style="font-size:11px;color:#aaa;margin-left:4px;">('+a+'/'+t+')</span>';bars.appendChild(row);}});if(!bars.innerHTML)bars.innerHTML='<div style="font-size:13px;color:#aaa;">Enter data above to see channel breakdown.</div>';calcF();}
+function calcF(){var total=parseInt(document.getElementById('f-total').value)||0,active=Math.min(parseInt(document.getElementById('f-active').value)||0,total);if(total>0){var s=Math.round((active/total)*100),col=bColor(s,FTARGET);document.getElementById('f-score').textContent=s+'%';document.getElementById('f-score').style.color=col;document.getElementById('f-bar').style.width=s+'%';document.getElementById('f-bar').style.background=col;document.getElementById('f-tag').innerHTML=badgeHtml(s,FTARGET);document.getElementById('f-stat-total').textContent=total;document.getElementById('f-stat-active').textContent=active;document.getElementById('f-stat-drop').textContent=total-active;document.getElementById('f-stat-droprate').textContent=Math.round(((total-active)/total)*100)+'%';}else{document.getElementById('f-score').textContent='—';document.getElementById('f-score').style.color='#aaa';document.getElementById('f-bar').style.width='0%';document.getElementById('f-tag').innerHTML='';['f-stat-total','f-stat-active','f-stat-drop','f-stat-droprate'].forEach(function(id){document.getElementById(id).textContent='—';});}}
+function calcFDepts(){var tT=0,tA=0,onT=0,ws=false,best={n:'',s:-1},worst={n:'',s:101};DEPTS.forEach(function(d,i){var total=parseInt(document.getElementById('fs'+i).value)||0,active=Math.min(parseInt(document.getElementById('fa'+i).value)||0,total);if(total>0){var s=Math.round((active/total)*100),col=bColor(s,FTARGET);document.getElementById('fpct'+i).textContent=s+'%';document.getElementById('fpct'+i).style.color=col;document.getElementById('fbar'+i).style.width=s+'%';document.getElementById('fbar'+i).style.background=col;document.getElementById('ftag'+i).innerHTML=badgeHtml(s,FTARGET);tT+=total;tA+=active;if(s>=FTARGET)onT++;if(s>best.s)best={n:d,s:s};if(!ws||s<worst.s){worst={n:d,s:s};ws=true;}}else{document.getElementById('fpct'+i).textContent='—';document.getElementById('fpct'+i).style.color='#aaa';document.getElementById('fbar'+i).style.width='0%';document.getElementById('fbar'+i).style.background='#e4e2da';document.getElementById('ftag'+i).innerHTML='';}});if(tT>0){document.getElementById('f-overall').textContent=Math.round((tA/tT)*100)+'%';document.getElementById('f-ontrack').textContent=onT+' / '+DEPTS.length;document.getElementById('f-best').textContent=best.s>-1?best.n+' ('+best.s+'%)':'—';document.getElementById('f-worst').textContent=ws?worst.n+' ('+worst.s+'%)':'—';}else{['f-overall','f-ontrack','f-best','f-worst'].forEach(function(id){document.getElementById(id).textContent='—';});}}
+function renderFTrend(){var wrap=document.getElementById('f-trend-wrap');if(!wrap)return;var fRecs=records.filter(function(r){return r.type==='f';});if(!fRecs.length){wrap.innerHTML='<div class="empty-state">No monthly records saved yet.</div>';return;}var tbl=document.createElement('table');tbl.className='records-table';tbl.innerHTML='<thead><tr><th>Month</th><th>Saved by</th><th>Total sourced</th><th>Active ≥1 month</th><th>Score</th><th>Status</th></tr></thead>';var tbody=document.createElement('tbody');fRecs.forEach(function(r){var ov=r.rows.find(function(x){return x.dept==='OVERALL';});if(ov){var tr=document.createElement('tr');var col=MEMBER_COLORS[r.savedBy]||'#888';tr.innerHTML='<td>'+r.full+'</td><td><span style="display:flex;align-items:center;gap:6px;"><span style="width:16px;height:16px;border-radius:50%;background:'+col+';display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;">'+r.savedBy[0]+'</span>'+r.savedBy+'</span></td><td>'+ov.total+'</td><td>'+ov.active+'</td><td>'+ov.pct+'</td><td>'+ov.status+'</td>';tbody.appendChild(tr);}});tbl.appendChild(tbody);wrap.innerHTML='';wrap.appendChild(tbl);}
+
+/* ── CALC G ── */
+function buildGDepts(){var c=document.getElementById('g-dept-list');if(!c)return;c.innerHTML='';DEPTS.forEach(function(d,i){var row=document.createElement('div');row.className='dept-row';row.innerHTML='<span class="dept-lbl">'+d+'</span><input class="di" type="number" min="0" max="999" value="" placeholder="Accepted" id="ga'+i+'" oninput="calcGDepts()"><span style="font-size:11px;color:#aaa;">accepted,</span><input class="di" type="number" min="0" max="999" value="" placeholder="Withdrew" id="gw'+i+'" oninput="calcGDepts()"><span style="font-size:11px;color:#aaa;">withdrew</span><div class="dept-bar-wrap"><div class="dept-bar-fill" id="gbar'+i+'" style="width:0%;background:#e4e2da;"></div></div><span class="dept-pct" id="gpct'+i+'" style="color:#aaa;">—</span><span id="gtag'+i+'"></span>';c.appendChild(row);});}
+function calcG(){var total=parseInt(document.getElementById('g-total').value)||0,w=Math.min(parseInt(document.getElementById('g-withdrawn').value)||0,total);if(total>0){var s=Math.round((w/total)*100),col=s<=5?'#16a34a':s<=10?'#d97706':'#dc2626';document.getElementById('g-score').textContent=s+'%';document.getElementById('g-score').style.color=col;document.getElementById('g-bar').style.width=Math.min((s/20)*100,100)+'%';document.getElementById('g-bar').style.background=col;document.getElementById('g-tag').innerHTML=s<=5?'<span class="badge badge-green">On track</span>':s<=10?'<span class="badge badge-amber">At risk</span>':'<span class="badge badge-red">Above target</span>';document.getElementById('g-stat-total').textContent=total;document.getElementById('g-stat-withdrawn').textContent=w;document.getElementById('g-stat-started').textContent=total-w;document.getElementById('g-stat-retained').textContent=Math.round(((total-w)/total)*100)+'%';}else{document.getElementById('g-score').textContent='—';document.getElementById('g-score').style.color='#aaa';document.getElementById('g-bar').style.width='0%';document.getElementById('g-tag').innerHTML='';['g-stat-total','g-stat-withdrawn','g-stat-started','g-stat-retained'].forEach(function(id){document.getElementById(id).textContent='—';});}}
+function calcGDepts(){var tA=0,tW=0,onT=0,ws=false,best={n:'',s:101},worst={n:'',s:-1};DEPTS.forEach(function(d,i){var a=parseInt(document.getElementById('ga'+i).value)||0,w=Math.min(parseInt(document.getElementById('gw'+i).value)||0,a);if(a>0){var s=Math.round((w/a)*100),col=s<=5?'#16a34a':s<=10?'#d97706':'#dc2626';document.getElementById('gpct'+i).textContent=s+'%';document.getElementById('gpct'+i).style.color=col;document.getElementById('gbar'+i).style.width=Math.min((s/20)*100,100)+'%';document.getElementById('gbar'+i).style.background=col;document.getElementById('gtag'+i).innerHTML=s<=5?'<span class="badge badge-green">On track</span>':s<=10?'<span class="badge badge-amber">At risk</span>':'<span class="badge badge-red">Above target</span>';tA+=a;tW+=w;if(s<=5)onT++;if(s<best.s)best={n:d,s:s};if(!ws||s>worst.s){worst={n:d,s:s};ws=true;}}else{document.getElementById('gpct'+i).textContent='—';document.getElementById('gpct'+i).style.color='#aaa';document.getElementById('gbar'+i).style.width='0%';document.getElementById('gbar'+i).style.background='#e4e2da';document.getElementById('gtag'+i).innerHTML='';}});if(tA>0){document.getElementById('g-overall').textContent=Math.round((tW/tA)*100)+'%';document.getElementById('g-ontrack').textContent=onT+' / '+DEPTS.length;document.getElementById('g-worst').textContent=ws?worst.n+' ('+worst.s+'%)':'—';document.getElementById('g-best').textContent=best.s<101?best.n+' ('+best.s+'%)':'—';}else{['g-overall','g-ontrack','g-worst','g-best'].forEach(function(id){document.getElementById(id).textContent='—';});}}
+
+/* ── SAVE / EXPORT ── */
+function collectRows(type){
+  if(type==='b'){return DEPTS.map(function(d,i){var t=DEPT_TARGETS[i],r=parseInt(document.getElementById('dr'+i).value)||0,dv=Math.min(parseInt(document.getElementById('dd'+i).value)||0,r),p=r>0?Math.round((dv/r)*100):null;return{dept:d,responded:r,diverse:dv,pct:p!==null?p+'%':'—',target:t+'%',status:p===null?'No data':p>=t?'On track':p>=t*0.85?'Near target':'Below target'};});}
+  if(type==='c'){return FSTAGES.map(function(s,i){var d=parseInt(document.getElementById('fd'+i).value)||0,t=parseInt(document.getElementById('ft'+i).value)||0,p=t>0?Math.round((Math.min(d,t)/t)*100):null;return{stage:s,diverse:d,total:t,pct:p!==null?p+'%':'—'};});}
+  if(type==='d'){var tot=parseInt(document.getElementById('p-total').value)||0,div=Math.min(parseInt(document.getElementById('p-div').value)||0,tot),op=tot>0?Math.round((div/tot)*100):null;var rows=DEPTS.map(function(d,i){var total=parseInt(document.getElementById('pt'+i).value)||0,q=Math.min(parseInt(document.getElementById('pd'+i).value)||0,total),p=total>0?Math.round((q/total)*100):null;return{dept:d,totalPanels:total,qualifying:q,pct:p!==null?p+'%':'—',target:'70%',status:p===null?'No data':p>=70?'On track':p>=60?'Near target':'Below target'};});rows.unshift({dept:'OVERALL',totalPanels:tot,qualifying:div,pct:op!==null?op+'%':'—',target:'70%',status:op===null?'No data':op>=70?'On track':op>=60?'Near target':'Below target'});return rows;}
+  if(type==='e'){var c=parseInt(document.getElementById('e-cands').value)||0,r=parseInt(document.getElementById('e-roles').value)||0,rat=r>0?(c/r).toFixed(1):null;var rows=DEPTS.map(function(d,i){var c2=parseInt(document.getElementById('ec'+i).value)||0,r2=parseInt(document.getElementById('er'+i).value)||0,rat2=r2>0?(c2/r2).toFixed(1):null;return{dept:d,candidates:c2,roles:r2,ratio:rat2!==null?rat2+'×':'—',target:'3×',status:rat2===null?'No data':parseFloat(rat2)>=3?'On track':parseFloat(rat2)>=2.25?'Near target':'Below target'};});rows.unshift({dept:'OVERALL',candidates:c,roles:r,ratio:rat!==null?rat+'×':'—',target:'3×',status:rat===null?'No data':parseFloat(rat)>=3?'On track':parseFloat(rat)>=2.25?'Near target':'Below target'});return rows;}
+  if(type==='f'){var tot=parseInt(document.getElementById('f-total').value)||0,act=Math.min(parseInt(document.getElementById('f-active').value)||0,tot),op=tot>0?Math.round((act/tot)*100):null;var chs=['linkedin','referral','outreach','inbound'];var chLabels=['LinkedIn','Referral','Direct outreach','Inbound (TA matched)'];var chRows=chs.map(function(ch,ci){var t=parseInt(document.getElementById('f-'+ch).value)||0,a=Math.min(parseInt(document.getElementById('f-'+ch+'-a').value)||0,t),p=t>0?Math.round((a/t)*100):null;return{dept:chLabels[ci],total:t,active:a,pct:p!==null?p+'%':'—',target:'60%',status:p===null?'No data':p>=60?'On track':p>=50?'Near target':'Below target'};});var deptRows=DEPTS.map(function(d,i){var t=parseInt(document.getElementById('fs'+i).value)||0,a=Math.min(parseInt(document.getElementById('fa'+i).value)||0,t),p=t>0?Math.round((a/t)*100):null;return{dept:d,total:t,active:a,pct:p!==null?p+'%':'—',target:'60%',status:p===null?'No data':p>=60?'On track':p>=50?'Near target':'Below target'};});var rows=[{dept:'OVERALL',total:tot,active:act,pct:op!==null?op+'%':'—',target:'60%',status:op===null?'No data':op>=60?'On track':op>=50?'Near target':'Below target'}].concat(chRows).concat(deptRows);return rows;}
+  if(type==='g'){var tot=parseInt(document.getElementById('g-total').value)||0,w=Math.min(parseInt(document.getElementById('g-withdrawn').value)||0,tot),op=tot>0?Math.round((w/tot)*100):null;var rows=DEPTS.map(function(d,i){var a=parseInt(document.getElementById('ga'+i).value)||0,dw=Math.min(parseInt(document.getElementById('gw'+i).value)||0,a),p=a>0?Math.round((dw/a)*100):null;return{dept:d,accepted:a,withdrawn:dw,pct:p!==null?p+'%':'—',target:'≤5%',status:p===null?'No data':p<=5?'On track':p<=10?'At risk':'Above target'};});rows.unshift({dept:'OVERALL',accepted:tot,withdrawn:w,pct:op!==null?op+'%':'—',target:'≤5%',status:op===null?'No data':op<=5?'On track':op<=10?'At risk':'Above target'});return rows;}
+}
+function saveRecord(type){
+  var rows=collectRows(type);var ps,pf,tl;
+  if(type==='f'){var m=document.getElementById('f-month').value,y=document.getElementById('f-year').value;ps=m+' '+y;pf=ps;}
+  else{var p=getPeriod(type);ps=p.short;pf=p.full;}
+  tl=type==='b'?'Pipeline Candidate Diversity':type==='c'?'Funnel Drop-off':type==='d'?'Interview Panel Diversity':type==='e'?'Pipeline Coverage Ratio':type==='f'?'Time-in-Pipeline':'Post-Acceptance Withdrawal';
+  records.push({type:type,typeLabel:tl,period:ps,full:pf,rows:rows,savedBy:currentUser,savedAt:new Date().toLocaleString()});
+  renderRecords();if(type==='f')renderFTrend();
+  showToast('Saved by '+currentUser+' — '+ps);
+}
+function exportExcel(type){
+  var rows=collectRows(type);var ps,pf;
+  if(type==='f'){var m=document.getElementById('f-month').value,y=document.getElementById('f-year').value;ps=m+'_'+y;pf=m+' '+y;}
+  else{var p=getPeriod(type);ps=p.short.replace(/\s/g,'_');pf=p.full;}
+  var h,d;
+  if(type==='b'){h=['Department','Answered Self-ID','Declared Diverse','Diverse %','Target %','Status'];d=rows.map(function(r){return[r.dept,r.responded,r.diverse,r.pct,r.target,r.status];});}
+  else if(type==='c'){h=['Stage','Diverse','Total','Diverse %'];d=rows.map(function(r){return[r.stage,r.diverse,r.total,r.pct];});}
+  else if(type==='d'){h=['Department','Total Panels','Qualifying','Score','Target','Status'];d=rows.map(function(r){return[r.dept,r.totalPanels,r.qualifying,r.pct,r.target,r.status];});}
+  else if(type==='e'){h=['Department','Active Candidates','Open Roles','Coverage Ratio','Target','Status'];d=rows.map(function(r){return[r.dept,r.candidates,r.roles,r.ratio,r.target,r.status];});}
+  else if(type==='f'){h=['Segment','Total Sourced','Active ≥1 Month','Score','Target','Status'];d=rows.map(function(r){return[r.dept,r.total,r.active,r.pct,r.target,r.status];});}
+  else{h=['Department','Accepted Offers','Withdrawals','Withdrawal Rate','Target','Status'];d=rows.map(function(r){return[r.dept,r.accepted,r.withdrawn,r.pct,r.target,r.status];});}
+  var lbl=type==='b'?'PipelineDiversity':type==='c'?'FunnelDropoff':type==='d'?'PanelDiversity':type==='e'?'CoverageRatio':type==='f'?'TimeInPipeline':'PostAcceptWithdrawal';
+  writeExcel([{name:lbl,data:[['Saved by',currentUser],['Period',pf],[''],h].concat(d)}],'DEIB_'+lbl+'_'+ps+'.xlsx');
+}
+function exportAllExcel(){
+  var filter=document.getElementById('filter-member').value,filtered=filter==='all'?records:records.filter(function(r){return r.savedBy===filter;});
+  if(!filtered.length){showToast('No records to export.');return;}
+  var sheets=[];
+  filtered.forEach(function(rec){
+    var h,d;
+    if(rec.type==='b'){h=['Department','Answered Self-ID','Declared Diverse','Diverse %','Target %','Status'];d=rec.rows.map(function(r){return[r.dept,r.responded,r.diverse,r.pct,r.target,r.status];});}
+    else if(rec.type==='c'){h=['Stage','Diverse','Total','Diverse %'];d=rec.rows.map(function(r){return[r.stage,r.diverse,r.total,r.pct];});}
+    else if(rec.type==='d'){h=['Department','Total Panels','Qualifying','Score','Target','Status'];d=rec.rows.map(function(r){return[r.dept,r.totalPanels,r.qualifying,r.pct,r.target,r.status];});}
+    else if(rec.type==='e'){h=['Department','Active Candidates','Open Roles','Coverage Ratio','Target','Status'];d=rec.rows.map(function(r){return[r.dept,r.candidates,r.roles,r.ratio,r.target,r.status];});}
+    else if(rec.type==='f'){h=['Segment','Total Sourced','Active ≥1 Month','Score','Target','Status'];d=rec.rows.map(function(r){return[r.dept,r.total,r.active,r.pct,r.target,r.status];});}
+    else{h=['Department','Accepted Offers','Withdrawals','Withdrawal Rate','Target','Status'];d=rec.rows.map(function(r){return[r.dept,r.accepted,r.withdrawn,r.pct,r.target,r.status];});}
+    sheets.push({name:(rec.type.toUpperCase()+'_'+rec.period+'_'+rec.savedBy).substring(0,31),data:[['Saved by',rec.savedBy],['Period',rec.full],['Saved at',rec.savedAt],[''],h].concat(d)});
+  });
+  writeExcel(sheets,'TA_Calculation_Tracker_All_Records.xlsx');
+}
+function writeExcel(sheets,filename){var wb=XLSX.utils.book_new();sheets.forEach(function(s){var ws=XLSX.utils.aoa_to_sheet(s.data);XLSX.utils.book_append_sheet(wb,ws,s.name);});XLSX.writeFile(wb,filename);showToast('Downloaded: '+filename);}
+function renderRecords(){
+  var filter=document.getElementById('filter-member').value,wrap=document.getElementById('all-records-wrap');
+  var filtered=filter==='all'?records:records.filter(function(r){return r.savedBy===filter;});
+  if(!filtered.length){wrap.innerHTML='<div class="empty-state">No records saved yet.</div>';return;}
+  wrap.innerHTML='';
+  var rev=filtered.slice().reverse();
+  rev.forEach(function(rec){
+    var col=MEMBER_COLORS[rec.savedBy]||'#888';var div=document.createElement('div');div.style.cssText='border:1px solid #e4e2da;border-radius:10px;padding:16px;margin-bottom:14px;';
+        if(rec.type==='dr'){
+      // Daily Report record
+      var snap=rec.snap||{};
+      var ps=rec.pipelineStatus||{};
+      var sm=rec.subMetrics||{};
+      var priHtml='<span style="background:#fef2f2;color:#dc2626;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;margin-right:4px;">🔴 High: '+snap.priHigh+'</span>'+
+        '<span style="background:#fffbeb;color:#b45309;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;margin-right:4px;">🟡 Mid: '+snap.priMid+'</span>'+
+        '<span style="background:#f0fdf4;color:#16a34a;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;">🟢 Low: '+snap.priLow+'</span>';
+      var flagHtml=(rec.flags&&rec.flags.length)?rec.flags.map(function(f){return'<div style="font-size:12px;padding:4px 0;">'+(f.type==='red'?'🔴':'🟡')+' '+f.text+'</div>';}).join(''):'<span style="color:#aaa;font-size:12px;">None</span>';
+      var tmrHtml=(rec.tomorrow&&rec.tomorrow.length)?rec.tomorrow.map(function(t,i){return'<div style="font-size:12px;padding:2px 0;">P'+(i+1)+'. '+t+'</div>';}).join(''):'<span style="color:#aaa;font-size:12px;">None</span>';
+      var roleRows=(rec.pipelineRows&&rec.pipelineRows.length)?rec.pipelineRows.map(function(p){
+        var priLabel=p.pri==='1'?'🔴 P1':p.pri==='3'?'🟢 P3':'🟡 P2';
+        return'<tr><td>'+p.role+'</td><td>'+priLabel+'</td><td>'+p.stage+'</td><td style="text-align:center;">'+p.cands+'</td><td>'+p.milestone+'</td><td>'+p.close+'</td></tr>';
+      }).join(''):'<tr><td colspan="6" style="color:#aaa;text-align:center;">No roles entered</td></tr>';
+      div.innerHTML=
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">'+
+          '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'+
+            '<div style="width:22px;height:22px;border-radius:50%;background:'+col+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;">'+rec.savedBy[0]+'</div>'+
+            '<span style="font-size:13px;font-weight:600;color:#1a1a18;">'+rec.savedBy+'</span>'+
+            '<span style="font-size:12px;padding:2px 10px;border-radius:99px;background:#eef2ff;color:#4f46e5;">Daily Report</span>'+
+            '<span style="font-size:12px;color:#888;">'+rec.full+'</span>'+
+          '</div>'+
+          '<span style="font-size:11px;color:#aaa;">'+rec.savedAt+'</span>'+
+        '</div>'+
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-bottom:14px;">'+
+          '<div class="s-card"><div class="s-lbl">Open roles (dept)</div><div class="s-val">'+snap.totalRoles+'</div></div>'+
+          '<div class="s-card"><div class="s-lbl">Pipeline candidates</div><div class="s-val">'+snap.pipeline+'</div></div>'+
+          '<div class="s-card"><div class="s-lbl">Needs attention</div><div class="s-val" style="color:#dc2626;">'+snap.attention+'</div></div>'+
+          '<div class="s-card"><div class="s-lbl">Offers extended</div><div class="s-val">'+snap.offers+'</div></div>'+
+          '<div class="s-card"><div class="s-lbl">Screening done</div><div class="s-val">'+sm.screening+'</div></div>'+
+          '<div class="s-card"><div class="s-lbl">Mgr IVs sched.</div><div class="s-val">'+sm.mgrIvs+'</div></div>'+
+          '<div class="s-card"><div class="s-lbl">Offers accepted</div><div class="s-val" style="color:#16a34a;">'+sm.accepted+'</div></div>'+
+        '</div>'+
+        '<div style="margin-bottom:10px;">'+priHtml+'</div>'+
+        '<div style="font-size:11px;font-weight:600;color:#666;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.06em;">Pipeline stages</div>'+
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">'+
+          '<span style="background:#f5f4f0;padding:3px 10px;border-radius:99px;font-size:12px;">Sourcing: '+ps.sourcing+'</span>'+
+          '<span style="background:#eef2ff;color:#4f46e5;padding:3px 10px;border-radius:99px;font-size:12px;">Screening: '+ps.screening+'</span>'+
+          '<span style="background:#fef3c7;color:#b45309;padding:3px 10px;border-radius:99px;font-size:12px;">Mgr IV: '+ps.mgrIv+'</span>'+
+          '<span style="background:#f5f3ff;color:#7c3aed;padding:3px 10px;border-radius:99px;font-size:12px;">Final: '+ps.final+'</span>'+
+          '<span style="background:#f0fdf4;color:#16a34a;padding:3px 10px;border-radius:99px;font-size:12px;">Offer: '+ps.offer+'</span>'+
+          '<span style="background:#fef2f2;color:#dc2626;padding:3px 10px;border-radius:99px;font-size:12px;">On Hold: '+ps.hold+'</span>'+
+        '</div>'+
+        '<div style="font-size:11px;font-weight:600;color:#666;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.06em;">Active roles</div>'+
+        '<table class="records-table" style="margin-bottom:14px;"><thead><tr><th>Role</th><th>Priority</th><th>Stage</th><th>Cands</th><th>Next milestone</th><th>Close</th></tr></thead><tbody>'+roleRows+'</tbody></table>'+
+        (rec.flags&&rec.flags.length?'<div style="font-size:11px;font-weight:600;color:#666;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.06em;">Flags &amp; Blockers</div><div style="margin-bottom:12px;">'+flagHtml+'</div>':'')+
+        (rec.wins?'<div style="font-size:11px;font-weight:600;color:#666;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em;">Today&#39;s Wins</div><div style="font-size:12px;color:#444;margin-bottom:12px;">'+rec.wins+'</div>':'')+
+        (rec.tomorrow&&rec.tomorrow.length?'<div style="font-size:11px;font-weight:600;color:#666;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em;">Plan for Tomorrow</div><div>'+tmrHtml+'</div>':'');
+      wrap.appendChild(div);
+      return;
+    }
+    var h='',r='';
+    if(rec.type==='b'){h='<tr><th>Department</th><th>Responded</th><th>Diverse</th><th>Score</th><th>Target</th><th>Status</th></tr>';r=rec.rows.map(function(x){return'<tr><td>'+x.dept+'</td><td>'+x.responded+'</td><td>'+x.diverse+'</td><td>'+x.pct+'</td><td>'+x.target+'</td><td>'+x.status+'</td></tr>';}).join('');}
+    else if(rec.type==='c'){h='<tr><th>Stage</th><th>Diverse</th><th>Total</th><th>Score</th></tr>';r=rec.rows.map(function(x){return'<tr><td>'+x.stage+'</td><td>'+x.diverse+'</td><td>'+x.total+'</td><td>'+x.pct+'</td></tr>';}).join('');}
+    else if(rec.type==='d'){h='<tr><th>Department</th><th>Total Panels</th><th>Qualifying</th><th>Score</th><th>Status</th></tr>';r=rec.rows.map(function(x){return'<tr><td>'+x.dept+'</td><td>'+x.totalPanels+'</td><td>'+x.qualifying+'</td><td>'+x.pct+'</td><td>'+x.status+'</td></tr>';}).join('');}
+    else if(rec.type==='e'){h='<tr><th>Department</th><th>Candidates</th><th>Roles</th><th>Ratio</th><th>Status</th></tr>';r=rec.rows.map(function(x){return'<tr><td>'+x.dept+'</td><td>'+x.candidates+'</td><td>'+x.roles+'</td><td>'+x.ratio+'</td><td>'+x.status+'</td></tr>';}).join('');}
+    else if(rec.type==='f'){h='<tr><th>Segment</th><th>Sourced</th><th>Active ≥1mo</th><th>Score</th><th>Status</th></tr>';r=rec.rows.map(function(x){return'<tr><td>'+x.dept+'</td><td>'+x.total+'</td><td>'+x.active+'</td><td>'+x.pct+'</td><td>'+x.status+'</td></tr>';}).join('');}
+    else{h='<tr><th>Department</th><th>Accepted</th><th>Withdrawn</th><th>Rate</th><th>Status</th></tr>';r=rec.rows.map(function(x){return'<tr><td>'+x.dept+'</td><td>'+x.accepted+'</td><td>'+x.withdrawn+'</td><td>'+x.pct+'</td><td>'+x.status+'</td></tr>';}).join('');}
+    div.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;"><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><span style="font-size:13px;font-weight:600;color:#6c63ff;">'+rec.full+'</span><span style="font-size:12px;padding:2px 10px;border-radius:99px;background:#f5f4f0;color:#666;">'+rec.typeLabel+'</span></div><div style="display:flex;align-items:center;gap:8px;"><div style="width:22px;height:22px;border-radius:50%;background:'+col+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;">'+rec.savedBy[0]+'</div><span style="font-size:12px;font-weight:500;color:'+col+';">'+rec.savedBy+'</span><span style="font-size:11px;color:#aaa;">'+rec.savedAt+'</span></div></div><table class="records-table"><thead>'+h+'</thead><tbody>'+r+'</tbody></table>';
+    wrap.appendChild(div);
+  });
+}
+function populateMemberFilter(){var sel=document.getElementById('filter-member');MEMBERS_CONFIG.forEach(function(m){var o=document.createElement('option');o.value=m.name;o.textContent=m.name;sel.appendChild(o);});}
+function clearSection(type){
+  if(type==='b'){DEPTS.forEach(function(_,i){document.getElementById('dr'+i).value='';document.getElementById('dd'+i).value='';});calcB();}
+  else if(type==='c'){FSTAGES.forEach(function(_,i){document.getElementById('fd'+i).value='';document.getElementById('ft'+i).value='';});calcC();}
+  else if(type==='d'){document.getElementById('p-total').value='';document.getElementById('p-div').value='';DEPTS.forEach(function(_,i){document.getElementById('pt'+i).value='';document.getElementById('pd'+i).value='';});calcPanel();calcDeptPanels();}
+  else if(type==='e'){document.getElementById('e-cands').value='';document.getElementById('e-roles').value='';DEPTS.forEach(function(_,i){document.getElementById('ec'+i).value='';document.getElementById('er'+i).value='';});calcE();calcEDepts();}
+  else if(type==='f'){['linkedin','referral','outreach','inbound'].forEach(function(ch){document.getElementById('f-'+ch).value='';document.getElementById('f-'+ch+'-a').value='';});document.getElementById('f-total').value='';document.getElementById('f-active').value='';document.getElementById('f-total-display').textContent='0';document.getElementById('f-active-display').textContent='0';DEPTS.forEach(function(_,i){document.getElementById('fs'+i).value='';document.getElementById('fa'+i).value='';});calcF();calcFDepts();document.getElementById('f-channel-bars').innerHTML='<div style="font-size:13px;color:#aaa;">Enter data above to see channel breakdown.</div>';}
+  else if(type==='g'){document.getElementById('g-total').value='';document.getElementById('g-withdrawn').value='';DEPTS.forEach(function(_,i){document.getElementById('ga'+i).value='';document.getElementById('gw'+i).value='';});calcG();calcGDepts();}
+}
+function clearAllRecords(){if(confirm('Clear all saved records?')){records=[];renderRecords();}}
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},3000);}
+function switchTab(id,el){document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active');});document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});document.getElementById(id).classList.add('active');el.classList.add('active');if(id==='records'){renderRecords();renderDRRecords();}if(id==='admin')buildAdminPanel();if(id==='calcF')renderFTrend();if(id==='dailyReport')initDailyReport();}
+
+/* ── DAILY REPORT ── */
+var drMember={name:'',role:'',color:'#6c63ff'};
+var drPipelineRows=[];
+var drPipelineRowsB=[];
+var drFlags=[];
+var drInited=false;
+
+var DR_DEPTS=['Corporate Services','Engineering & Technology','Finance & Accounting','Human Resources','Legal & Compliance','Marketing & Communications','Operations','Product','Sales & Business Development','Strategy & Consulting','Talent Acquisition','Other / All Departments'];
+
+function selectDRMember(btn,name,role,color){
+  document.querySelectorAll('.dr-member-btn').forEach(function(b){b.classList.remove('dr-member-active');});
+  btn.classList.add('dr-member-active');
+  btn.style.borderColor=color;btn.style.color=color;btn.style.background=color+'18';
+  drMember={name:name,role:role,color:color};
+  var banner=document.getElementById('dr-active-banner');
+  banner.style.display='flex';
+  document.getElementById('dr-banner-avatar').style.background=color;
+  document.getElementById('dr-banner-avatar').textContent=name[0];
+  document.getElementById('dr-banner-name').textContent=name;
+  var dept=document.getElementById('dr-dept-sel').value;
+  document.getElementById('dr-banner-meta').textContent=(role==='recruiter'?'Recruiter':'Sourcer')+(dept?' · '+dept:'');
+  renderDRForm();
+}
+
+function clearDRMember(){
+  drMember={name:'',role:'',color:'#6c63ff'};
+  document.querySelectorAll('.dr-member-btn').forEach(function(b){b.classList.remove('dr-member-active');b.style.borderColor='';b.style.color='';b.style.background='';});
+  document.getElementById('dr-active-banner').style.display='none';
+  document.getElementById('dr-form-wrap').style.display='none';
+  document.getElementById('dr-form-wrap').innerHTML='';
+  drPipelineRows=[];drPipelineRowsB=[];drFlags=[];
+}
+
+function renderDRForm(){
+  drPipelineRows=[];drPipelineRowsB=[];drFlags=[];
+  var wrap=document.getElementById('dr-form-wrap');
+  var isSourcer=(drMember.role==='sourcer');
+  var c=drMember.color;
+  var dept=document.getElementById('dr-dept-sel').value||'All Departments';
+
+  wrap.innerHTML=
+  // ── SNAPSHOT ──
+  '<div class="card" style="border-top:3px solid '+c+';">'+
+  '<div class="card-title">1 — Overall Snapshot</div>'+
+  '<div class="card-sub">Your department: <strong>'+dept+'</strong></div>'+
+  '<div class="dr-metrics">'+
+    '<div class="dr-metric"><div class="dr-metric-lbl">Total open roles<br>(this dept)</div><div class="dr-metric-val"><input style="background:none;border:none;border-bottom:1.5px dashed '+c+';outline:none;font-size:26px;font-weight:700;color:'+c+';width:60px;text-align:center;font-family:inherit;padding:0;" type="number" min="0" placeholder="—" id="sn-total-roles" oninput="updateDRPreview()"></div><div class="dr-metric-sub">editable</div></div>'+
+    '<div class="dr-metric"><div class="dr-metric-lbl">Candidates in pipeline</div><div class="dr-metric-val"><input style="background:none;border:none;border-bottom:1.5px dashed #ccc;outline:none;font-size:26px;font-weight:700;color:#1a1a18;width:60px;text-align:center;font-family:inherit;padding:0;" type="number" min="0" placeholder="—" id="sn-pipeline" oninput="updateDRPreview()"></div><div class="dr-metric-sub">active today</div></div>'+
+    '<div class="dr-metric"><div class="dr-metric-lbl">Roles needing attention</div><div class="dr-metric-val"><input style="background:none;border:none;border-bottom:1.5px dashed #dc2626;outline:none;font-size:26px;font-weight:700;color:#dc2626;width:60px;text-align:center;font-family:inherit;padding:0;" type="number" min="0" placeholder="—" id="sn-attention" oninput="updateDRPreview()"></div><div class="dr-metric-sub">flagged</div></div>'+
+    '<div class="dr-metric"><div class="dr-metric-lbl">Offers extended</div><div class="dr-metric-val"><input style="background:none;border:none;border-bottom:1.5px dashed #ccc;outline:none;font-size:26px;font-weight:700;color:#1a1a18;width:60px;text-align:center;font-family:inherit;padding:0;" type="number" min="0" placeholder="—" id="sn-offers" oninput="updateDRPreview()"></div><div class="dr-metric-sub">this week</div></div>'+
+  '</div>'+
+  // Priority roles
+  '<div style="margin-top:16px;">'+
+  '<div style="font-size:12px;font-weight:600;color:#1a1a18;margin-bottom:10px;">Priority roles</div>'+
+  '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">'+
+    '<div style="background:#fef2f2;border-radius:8px;padding:14px;text-align:center;">'+
+      '<div style="font-size:10px;font-weight:600;color:#dc2626;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">🔴 High</div>'+
+      '<input type="number" min="0" id="pr-high" oninput="updateDRPreview()" placeholder="0" style="width:64px;font-size:28px;font-weight:700;color:#dc2626;background:none;border:none;border-bottom:2px solid #fca5a5;outline:none;text-align:center;font-family:inherit;">'+
+      '<div style="font-size:10px;color:#dc2626;margin-top:4px;">roles</div></div>'+
+    '<div style="background:#fffbeb;border-radius:8px;padding:14px;text-align:center;">'+
+      '<div style="font-size:10px;font-weight:600;color:#b45309;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">🟡 Mid</div>'+
+      '<input type="number" min="0" id="pr-mid" oninput="updateDRPreview()" placeholder="0" style="width:64px;font-size:28px;font-weight:700;color:#b45309;background:none;border:none;border-bottom:2px solid #fcd34d;outline:none;text-align:center;font-family:inherit;">'+
+      '<div style="font-size:10px;color:#b45309;margin-top:4px;">roles</div></div>'+
+    '<div style="background:#f0fdf4;border-radius:8px;padding:14px;text-align:center;">'+
+      '<div style="font-size:10px;font-weight:600;color:#16a34a;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">🟢 Low</div>'+
+      '<input type="number" min="0" id="pr-low" oninput="updateDRPreview()" placeholder="0" style="width:64px;font-size:28px;font-weight:700;color:#16a34a;background:none;border:none;border-bottom:2px solid #86efac;outline:none;text-align:center;font-family:inherit;">'+
+      '<div style="font-size:10px;color:#16a34a;margin-top:4px;">roles</div></div>'+
+  '</div></div></div>'+
+
+  // ── PIPELINE STATUS ──
+  '<div class="card">'+
+  '<div class="card-title">2 — Open Active Roles Status</div>'+
+  '<div class="card-sub">Type roles below to quick-add — or add individually using the button.</div>'+
+
+  // Quick-add textarea
+  '<div style="background:#f5f4f0;border-radius:10px;padding:14px;margin-bottom:14px;">'+
+    '<div style="font-size:12px;font-weight:600;color:#1a1a18;margin-bottom:8px;">Quick add roles</div>'+
+    '<div style="font-size:11px;color:#666;margin-bottom:10px;">One role per line. Optionally add priority and candidates separated by commas:<br><span style="font-family:monospace;background:#fff;padding:2px 6px;border-radius:4px;font-size:11px;">Senior Engineer, High, 5</span> &nbsp;or just&nbsp; <span style="font-family:monospace;background:#fff;padding:2px 6px;border-radius:4px;font-size:11px;">Product Manager</span></div>'+
+    '<div style="display:flex;gap:8px;align-items:flex-start;">'+
+      '<textarea id="dr-quick-add" placeholder="Senior Engineer, High, 3&#10;Product Manager, Mid, 2&#10;Data Analyst" style="flex:1;padding:9px 12px;border:1px solid #e4e2da;border-radius:8px;font-size:13px;font-family:inherit;min-height:90px;resize:vertical;outline:none;line-height:1.6;background:#fff;color:#1a1a18;"></textarea>'+
+      '<button onclick="quickAddRoles()" style="padding:9px 16px;background:#6c63ff;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;font-weight:500;white-space:nowrap;">Add roles</button>'+
+    '</div>'+
+  '</div>'+
+
+  // Table
+  '<div style="overflow-x:auto;">'+
+  '<table class="dr-pipeline-table"><thead><tr>'+
+    '<th>Role</th><th>Priority</th><th>Pipeline Stage</th><th style="text-align:center;">Candidates</th><th>Next milestone</th><th>Target close</th><th>Notes / blockers</th><th></th></tr></thead>'+
+  '<tbody id="dr-pipeline-body"></tbody></table></div>'+
+  '<button class="dr-add-row-btn" onclick="addPipelineRow()">+ Add role</button>'+
+
+  // Sub-metrics
+  '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid #e4e2da;">'+
+    '<div class="s-card"><div class="s-lbl">Screening (today)</div><div class="s-val"><input style="background:none;border:none;border-bottom:1px dashed #ccc;outline:none;font-size:22px;font-weight:600;color:#1a1a18;width:60px;text-align:center;font-family:inherit;" type="number" min="0" placeholder="0" id="sub-screening" oninput="updateDRPreview()"></div></div>'+
+    '<div class="s-card"><div class="s-lbl">Interviews — mgr scheduled</div><div class="s-val"><input style="background:none;border:none;border-bottom:1px dashed #ccc;outline:none;font-size:22px;font-weight:600;color:#1a1a18;width:60px;text-align:center;font-family:inherit;" type="number" min="0" placeholder="0" id="sub-mgr-ivs" oninput="updateDRPreview()"></div></div>'+
+    '<div class="s-card"><div class="s-lbl">Offers accepted</div><div class="s-val"><input style="background:none;border:none;border-bottom:1px dashed #ccc;outline:none;font-size:22px;font-weight:600;color:#16a34a;width:60px;text-align:center;font-family:inherit;" type="number" min="0" placeholder="0" id="sub-accepted" oninput="updateDRPreview()"></div></div>'+
+  '</div></div>'+
+
+  // ── PIPELINE STATUS 2B ──
+  '<div class="card">'+
+  '<div class="card-title">2b — Pipeline Roles Status</div>'+
+  '<div class="card-sub">Track your pipeline roles progress separately. Same columns as above — independent data.</div>'+
+
+  // Quick-add for 2b
+  '<div style="background:#f5f4f0;border-radius:10px;padding:14px;margin-bottom:14px;">'+
+    '<div style="font-size:12px;font-weight:600;color:#1a1a18;margin-bottom:8px;">Quick add roles</div>'+
+    '<div style="font-size:11px;color:#666;margin-bottom:10px;">One role per line with optional priority and candidates: <span style="font-family:monospace;background:#fff;padding:2px 6px;border-radius:4px;">Senior Engineer, High, 5</span></div>'+
+    '<div style="display:flex;gap:8px;align-items:flex-start;">'+
+      '<textarea id="dr-quick-add-b" placeholder="Role name, priority, candidates" style="flex:1;padding:9px 12px;border:1px solid #e4e2da;border-radius:8px;font-size:13px;font-family:inherit;min-height:70px;resize:vertical;outline:none;line-height:1.6;background:#fff;color:#1a1a18;"></textarea>'+
+      '<button onclick="quickAddRolesB()" style="padding:9px 16px;background:#6c63ff;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;font-weight:500;white-space:nowrap;">Add roles</button>'+
+    '</div>'+
+  '</div>'+
+
+  '<div style="overflow-x:auto;">'+
+  '<table class="dr-pipeline-table"><thead><tr>'+
+    '<th>Role</th><th>Priority</th><th>Pipeline Stage</th><th style="text-align:center;">Candidates</th><th>Next milestone</th><th>Target close</th><th>Notes / blockers</th><th></th></tr></thead>'+
+  '<tbody id="dr-pipeline-body-b"></tbody></table></div>'+
+  '<button class="dr-add-row-btn" onclick="addPipelineRowB()">+ Add role</button>'+
+  '</div>'+
+
+  // ── FLAGS & BLOCKERS ──
+  '<div class="card">'+
+  '<div class="card-title">3 — Flags &amp; Blockers</div>'+
+  '<div class="card-sub">Items that need a decision or action from leadership before you can move forward.</div>'+
+  '<div class="flag-section" id="dr-flags-list"></div>'+
+  '<button class="dr-add-row-btn" onclick="addFlag()" style="margin-top:10px;">+ Add flag / blocker</button></div>'+
+
+  // ── WINS ──
+  '<div class="card">'+
+  '<div class="card-title">4 — Today&#39;s Wins</div>'+
+  '<div class="card-sub">Progress and positive moments to highlight to the CEO.</div>'+
+  '<textarea class="wins-textarea" id="dr-wins" placeholder="e.g. Offer accepted for Senior Engineer · Final round completed for Head of Product · 5 new strong profiles sourced for CTO role..." oninput="updateDRPreview()"></textarea></div>'+
+
+  // ── TOMORROW ──
+  '<div class="card">'+
+  '<div class="card-title">5 — Plan for Tomorrow</div>'+
+  '<div class="card-sub">Your top priorities for the next working day.</div>'+
+  '<div class="tomorrow-items">'+
+    '<div class="tomorrow-row"><span class="priority-badge" style="background:#fef2f2;color:#dc2626;">Priority 1</span><input class="tomorrow-input" type="text" placeholder="Most critical action for tomorrow" id="tmr-1" oninput="updateDRPreview()"></div>'+
+    '<div class="tomorrow-row"><span class="priority-badge" style="background:#fffbeb;color:#b45309;">Priority 2</span><input class="tomorrow-input" type="text" placeholder="" id="tmr-2" oninput="updateDRPreview()"></div>'+
+    '<div class="tomorrow-row"><span class="priority-badge" style="background:#f0fdf4;color:#16a34a;">Priority 3</span><input class="tomorrow-input" type="text" placeholder="" id="tmr-3" oninput="updateDRPreview()"></div>'+
+    '<div class="tomorrow-row"><span class="priority-badge">Priority 4</span><input class="tomorrow-input" type="text" placeholder="" id="tmr-4" oninput="updateDRPreview()"></div>'+
+  '</div></div>'+
+
+  // ── PREVIEW ──
+  '<div class="card">'+
+  '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">'+
+    '<div><div class="card-title">CEO Report Preview</div><div class="card-sub" style="margin:0;">Visual summary — screenshot to share.</div></div>'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;">'+
+      '<button class="dr-copy-btn" onclick="screenshotReport()" style="background:#1a1a18;color:#fff;">&#128247; Screenshot</button>'+
+      '<button class="dr-copy-btn" onclick="copyDRReport()">Copy text</button>'+
+      '<button class="btn btn-green" onclick="exportDRExcel()">Excel</button>'+
+      '<button class="btn btn-primary" onclick="saveDRRecord()">Save</button>'+
+    '</div></div>'+
+  '<div id="dr-preview" style="font-family:inherit;"><div style="font-size:13px;color:#aaa;padding:20px;text-align:center;">Fill in the sections above to generate your CEO report preview...</div></div>'+
+  '</div>';
+
+  wrap.style.display='block';
+  
+  addFlag('red');addFlag('amber');
+
+  // Wire upload zone events after DOM is ready
+  setTimeout(function(){
+    var zone=document.getElementById('dr-upload-zone');
+    var fileInput=document.getElementById('dr-file-input');
+    if(zone&&fileInput){
+      zone.addEventListener('click',function(){fileInput.click();});
+      zone.addEventListener('dragover',function(e){e.preventDefault();zone.style.background='#f5f4ff';});
+      zone.addEventListener('dragleave',function(){zone.style.background='';});
+      zone.addEventListener('drop',function(e){e.preventDefault();zone.style.background='';var f=e.dataTransfer.files[0];if(f)handleDRFileUpload(f);});
+      fileInput.addEventListener('change',function(){if(this.files[0])handleDRFileUpload(this.files[0]);});
+    }
+  },50);
+
+  updateDRPreview();
+}
+
+function addPipelineRow(){
+  var idx=drPipelineRows.length;
+  drPipelineRows.push(idx);
+  var tbody=document.getElementById('dr-pipeline-body');
+  if(!tbody)return;
+  var tr=document.createElement('tr');
+  tr.id='dr-pr-'+idx;
+  tr.innerHTML=
+    '<td><input class="dr-td-input" type="text" placeholder="Role title" id="pr-role-'+idx+'" oninput="updateDRPreview()"></td>'+
+    '<td><select class="dr-stage-select" id="pr-pri-'+idx+'" onchange="updateDRPreview()">'+
+      '<option value="1">🔴 1 – High</option>'+
+      '<option value="2" selected>🟡 2 – Mid</option>'+
+      '<option value="3">🟢 3 – Low</option>'+
+    '</select></td>'+
+    '<td><select class="dr-stage-select" id="pr-stage-'+idx+'" onchange="updateDRPreview()">'+
+      '<option>Sourcing</option>'+
+      '<option>Screening</option>'+
+      '<option>Interview Scheduled</option>'+
+      '<option>Mgr Interview</option>'+
+      '<option>Final Round</option>'+
+      '<option>Offer Stage</option>'+
+      '<option>Offer Accepted</option>'+
+      '<option>On Hold</option>'+
+    '</select></td>'+
+    '<td style="text-align:center;"><input class="dr-td-input" type="number" min="0" placeholder="0" id="pr-cands-'+idx+'" style="width:44px;text-align:center;" oninput="updateDRPreview()"></td>'+
+    '<td><input class="dr-td-input" type="text" placeholder="e.g. Final interview Fri" id="pr-milestone-'+idx+'" oninput="updateDRPreview()"></td>'+
+    '<td><input class="dr-td-input" type="date" id="pr-close-'+idx+'" oninput="updateDRPreview()"></td>'+
+    '<td><input class="dr-td-input" type="text" placeholder="Blockers, notes..." id="pr-notes-'+idx+'" oninput="updateDRPreview()"></td>'+
+    '<td><button class="dr-remove-row" onclick="removePipelineRow('+idx+')">✕</button></td>';
+  tbody.appendChild(tr);
+}
+
+function removePipelineRow(idx){
+  var row=document.getElementById('dr-pr-'+idx);
+  if(row)row.remove();
+  drPipelineRows=drPipelineRows.filter(function(i){return i!==idx;});
+  updateDRPreview();
+}
+
+function addFlag(type){
+  var idx=drFlags.length;
+  drFlags.push(idx);
+  type=type||'amber';
+  var list=document.getElementById('dr-flags-list');
+  if(!list)return;
+  var div=document.createElement('div');
+  div.id='dr-flag-'+idx;
+  div.className='flag-item';
+  div.innerHTML='<div class="flag-dot flag-dot-'+type+'" id="flag-dot-'+idx+'"></div>'+
+    '<select class="flag-type-select" id="flag-type-'+idx+'" onchange="updateFlagDot('+idx+');updateDRPreview()">'+
+      '<option value="red"'+(type==='red'?' selected':'')+'>🔴 Blocker</option>'+
+      '<option value="amber"'+(type==='amber'?' selected':'')+'>🟡 Risk</option>'+
+    '</select>'+
+    '<input class="flag-text-input" type="text" placeholder="Describe the issue and what action is needed from CEO..." id="flag-text-'+idx+'" oninput="updateDRPreview()">'+
+    '<button class="dr-remove-row" onclick="removeFlag('+idx+')">✕</button>';
+  list.appendChild(div);
+}
+
+function updateFlagDot(idx){
+  var sel=document.getElementById('flag-type-'+idx);
+  var dot=document.getElementById('flag-dot-'+idx);
+  if(sel&&dot){dot.className='flag-dot flag-dot-'+sel.value;}
+}
+
+function removeFlag(idx){
+  var el=document.getElementById('dr-flag-'+idx);
+  if(el)el.remove();
+  drFlags=drFlags.filter(function(i){return i!==idx;});
+  updateDRPreview();
+}
+
+function gv(id){var el=document.getElementById(id);return el?el.value.trim():'';}
+
+function updateDRPreview(){
+  if(drMember.name){
+    var dept=document.getElementById('dr-dept-sel').value;
+    var metaEl=document.getElementById('dr-banner-meta');
+    if(metaEl)metaEl.textContent=(drMember.role==='recruiter'?'Recruiter':'Sourcer')+(dept?' · '+dept:'');
+  }
+  var previewEl=document.getElementById('dr-preview');
+  if(!previewEl)return;
+
+  var date=gv('dr-date')||'—';
+  var week=gv('dr-week')||'—';
+  var member=drMember.name||'—';
+  var memberRole=drMember.role==='sourcer'?'Sourcer':'Recruiter';
+  var dept=gv('dr-dept-sel')||'All Departments';
+  var col=drMember.color||'#6c63ff';
+
+  // Colour helpers
+  var priColors={
+    '1':{bg:'#fef2f2',tc:'#dc2626',label:'High',dot:'&#128308;'},
+    '2':{bg:'#fffbeb',tc:'#b45309',label:'Mid',dot:'&#128993;'},
+    '3':{bg:'#f0fdf4',tc:'#16a34a',label:'Low',dot:'&#128994;'}
+  };
+  var stageColors={
+    'Sourcing':{bg:'#f1f5f9',tc:'#475569'},
+    'Screening':{bg:'#eef2ff',tc:'#4f46e5'},
+    'Interview Scheduled':{bg:'#fef9c3',tc:'#854d0e'},
+    'Mgr Interview':{bg:'#fef3c7',tc:'#b45309'},
+    'Final Round':{bg:'#f5f3ff',tc:'#7c3aed'},
+    'Offer Stage':{bg:'#f0fdf4',tc:'#16a34a'},
+    'Offer Accepted':{bg:'#dcfce7',tc:'#15803d'},
+    'On Hold':{bg:'#fef2f2',tc:'#dc2626'}
+  };
+  function priPill(v){var p=priColors[v]||priColors['2'];return'<span style="background:'+p.bg+';color:'+p.tc+';padding:2px 9px;border-radius:99px;font-size:11px;font-weight:700;letter-spacing:0.02em;">'+p.dot+' '+p.label+'</span>';}
+  function stagePill(s){var p=stageColors[s]||{bg:'#f5f4f0',tc:'#888'};return'<span style="background:'+p.bg+';color:'+p.tc+';padding:2px 10px;border-radius:99px;font-size:11px;font-weight:600;white-space:nowrap;">'+escHtml(s)+'</span>';}
+
+  // Collect role data
+  var rowsA=[];
+  drPipelineRows.forEach(function(i){
+    var rowEl=document.getElementById('dr-pr-'+i);if(!rowEl)return;
+    var r=gv('pr-role-'+i);if(!r)return;
+    rowsA.push({role:r,pri:gv('pr-pri-'+i)||'2',stage:gv('pr-stage-'+i)||'Sourcing',cands:gv('pr-cands-'+i)||'0',milestone:gv('pr-milestone-'+i),close:gv('pr-close-'+i),notes:gv('pr-notes-'+i)});
+  });
+  var rowsB=[];
+  drPipelineRowsB.forEach(function(i){
+    var rowEl=document.getElementById('dr-pr-b-'+i);if(!rowEl)return;
+    var r=gv('pr-b-role-'+i);if(!r)return;
+    rowsB.push({role:r,pri:gv('pr-b-pri-'+i)||'2',stage:gv('pr-b-stage-'+i)||'Sourcing',cands:gv('pr-b-cands-'+i)||'0',milestone:gv('pr-b-milestone-'+i),close:gv('pr-b-close-'+i),notes:gv('pr-b-notes-'+i)});
+  });
+  var flagItems=[];
+  drFlags.forEach(function(i){
+    var el=document.getElementById('flag-text-'+i);
+    var typeEl=document.getElementById('flag-type-'+i);
+    if(!el||!el.value.trim())return;
+    flagItems.push({type:typeEl?typeEl.value:'amber',text:el.value.trim()});
+  });
+  var tmrVals=['1','2','3','4'].map(function(n){return gv('tmr-'+n);}).filter(Boolean);
+  var wins=gv('dr-wins');
+
+  function rolesTable(rows){
+    if(!rows.length)return'<div style="font-size:12px;color:#94a3b8;padding:10px 0;text-align:center;">No roles added.</div>';
+    var h='<table style="width:100%;border-collapse:collapse;font-size:12px;">';
+    h+='<thead><tr style="border-bottom:1.5px solid #e2e8f0;">';
+    ['Role','Priority','Stage','Cands','Next milestone','Close','Notes'].forEach(function(t,i){
+      h+='<th style="text-align:'+(i===3?'center':'left')+';padding:6px 8px;font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:#94a3b8;">'+t+'</th>';
+    });
+    h+='</tr></thead><tbody>';
+    rows.forEach(function(r,i){
+      h+='<tr style="border-bottom:0.5px solid '+(i===rows.length-1?'transparent':'#f1f5f9')+'">';
+      h+='<td style="padding:8px;font-weight:600;color:#0f172a;font-size:12px;">'+escHtml(r.role)+'</td>';
+      h+='<td style="padding:8px;">'+priPill(r.pri)+'</td>';
+      h+='<td style="padding:8px;">'+stagePill(r.stage)+'</td>';
+      h+='<td style="padding:8px;text-align:center;font-size:16px;font-weight:800;color:#0f172a;">'+escHtml(r.cands||'0')+'</td>';
+      h+='<td style="padding:8px;font-size:11px;color:#64748b;">'+escHtml(r.milestone||'—')+'</td>';
+      h+='<td style="padding:8px;font-size:11px;color:#64748b;white-space:nowrap;">'+escHtml(r.close||'—')+'</td>';
+      h+='<td style="padding:8px;font-size:11px;color:#94a3b8;">'+escHtml(r.notes||'')+'</td>';
+      h+='</tr>';
+    });
+    h+='</tbody></table>';
+    return h;
+  }
+
+  // ── BUILD CARD ──
+  var h='';
+  h+='<div id="dr-report-card" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',sans-serif;max-width:900px;">';
+
+  // ── TOP HEADER BAND ──
+  h+='<div style="background:'+col+';padding:20px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">';
+  h+='<div>';
+  h+='<div style="font-size:11px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:rgba(255,255,255,0.65);margin-bottom:4px;">ManifestGlobal · Talent Acquisition</div>';
+  h+='<div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-0.02em;">Daily Recruiting Report</div>';
+  h+='</div>';
+  h+='<div style="text-align:right;">';
+  h+='<div style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);border-radius:99px;padding:6px 14px;">';
+  h+='<div style="width:28px;height:28px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:'+col+';">'+member[0]+'</div>';
+  h+='<div><div style="font-size:13px;font-weight:700;color:#fff;">'+escHtml(member)+'</div>';
+  h+='<div style="font-size:10px;color:rgba(255,255,255,0.7);">'+memberRole+' · '+escHtml(dept)+'</div></div></div>';
+  h+='<div style="font-size:11px;color:rgba(255,255,255,0.65);margin-top:6px;">'+date+' &nbsp;·&nbsp; Week '+escHtml(week)+'</div>';
+  h+='</div></div>';
+
+  // ── SNAPSHOT ROW ──
+  var snapItems=[
+    {label:'Open Roles',val:gv('sn-total-roles')||'—',sub:'this dept',accent:col},
+    {label:'In Pipeline',val:gv('sn-pipeline')||'—',sub:'candidates',accent:'#0891b2'},
+    {label:'Needs Attention',val:gv('sn-attention')||'—',sub:'flagged',accent:'#dc2626'},
+    {label:'Offers Out',val:gv('sn-offers')||'—',sub:'this week',accent:'#16a34a'},
+    {label:'Screening',val:gv('sub-screening')||'—',sub:'done today',accent:'#7c3aed'},
+    {label:'Mgr IVs',val:gv('sub-mgr-ivs')||'—',sub:'scheduled',accent:'#b45309'},
+    {label:'Accepted',val:gv('sub-accepted')||'—',sub:'offers',accent:'#0d9488'}
+  ];
+  h+='<div style="display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid #f1f5f9;">';
+  snapItems.forEach(function(s,i){
+    h+='<div style="padding:16px 12px;text-align:center;'+(i<snapItems.length-1?'border-right:1px solid #f1f5f9;':'')+'">';
+    h+='<div style="font-size:28px;font-weight:800;color:'+s.accent+';line-height:1;">'+s.val+'</div>';
+    h+='<div style="font-size:11px;font-weight:600;color:#334155;margin-top:3px;">'+s.label+'</div>';
+    h+='<div style="font-size:10px;color:#94a3b8;">'+s.sub+'</div>';
+    h+='</div>';
+  });
+  h+='</div>';
+
+  // ── PRIORITY BAND ──
+  var priH=gv('pr-high')||'0', priM=gv('pr-mid')||'0', priL=gv('pr-low')||'0';
+  h+='<div style="background:#f8fafc;padding:12px 28px;display:flex;align-items:center;gap:16px;border-bottom:1px solid #f1f5f9;flex-wrap:wrap;">';
+  h+='<span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#94a3b8;">Priority</span>';
+  h+='<div style="display:flex;gap:10px;flex-wrap:wrap;">';
+  [{v:'1',n:priH},{v:'2',n:priM},{v:'3',n:priL}].forEach(function(p){
+    var pc=priColors[p.v];
+    h+='<div style="display:flex;align-items:center;gap:6px;background:'+pc.bg+';border-radius:99px;padding:5px 14px;">';
+    h+='<span style="font-size:18px;font-weight:800;color:'+pc.tc+';">'+p.n+'</span>';
+    h+='<span style="font-size:11px;color:'+pc.tc+';font-weight:600;">'+pc.label+' priority roles</span>';
+    h+='</div>';
+  });
+  h+='</div></div>';
+
+  // ── BODY: TWO COLUMNS ──
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">';
+
+  // Left col: 2a roles
+  h+='<div style="padding:20px 24px;border-right:1px solid #f1f5f9;">';
+  h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">';
+  h+='<div style="width:4px;height:18px;border-radius:2px;background:'+col+';"></div>';
+  h+='<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#334155;">Open Active Roles</div>';
+  h+='<div style="margin-left:auto;background:'+col+'18;color:'+col+';border-radius:99px;padding:2px 10px;font-size:11px;font-weight:700;">'+rowsA.length+' roles</div>';
+  h+='</div>';
+  h+=rolesTable(rowsA);
+  h+='</div>';
+
+  // Right col: 2b roles
+  h+='<div style="padding:20px 24px;">';
+  h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">';
+  h+='<div style="width:4px;height:18px;border-radius:2px;background:#0891b2;"></div>';
+  h+='<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#334155;">Pipeline Status</div>';
+  h+='<div style="margin-left:auto;background:#0891b218;color:#0891b2;border-radius:99px;padding:2px 10px;font-size:11px;font-weight:700;">'+rowsB.length+' roles</div>';
+  h+='</div>';
+  h+=rolesTable(rowsB);
+  h+='</div>';
+
+  h+='</div>'; // end 2-col grid
+
+  // ── SECTIONS 3, 4, 5 — always shown ──
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-top:2px solid #f1f5f9;">';
+
+  // Section 3 — Flags & Blockers
+  h+='<div style="padding:18px 20px;border-right:1px solid #f1f5f9;">';
+  h+='<div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;">';
+  h+='<div style="width:3px;height:16px;border-radius:2px;background:#dc2626;"></div>';
+  h+='<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:#dc2626;">3 — Flags & Blockers</div>';
+  h+='</div>';
+  if(flagItems.length){
+    h+='<div style="display:flex;flex-direction:column;gap:5px;">';
+    flagItems.forEach(function(f){
+      var isR=f.type==='red';
+      h+='<div style="display:flex;align-items:flex-start;gap:8px;padding:7px 10px;border-radius:7px;background:'+(isR?'#fef2f2':'#fffbeb')+';border-left:3px solid '+(isR?'#dc2626':'#f59e0b')+';">';
+      h+='<span style="font-size:10px;font-weight:800;color:'+(isR?'#dc2626':'#b45309')+';white-space:nowrap;margin-top:1px;text-transform:uppercase;">'+(isR?'Blocker':'Risk')+'</span>';
+      h+='<span style="font-size:11px;color:#374151;line-height:1.5;">'+escHtml(f.text)+'</span>';
+      h+='</div>';
+    });
+    h+='</div>';
+  } else {
+    h+='<div style="font-size:12px;color:#94a3b8;font-style:italic;padding:6px 0;">None today.</div>';
+  }
+  h+='</div>';
+
+  // Section 4 — Today's Wins
+  h+='<div style="padding:18px 20px;border-right:1px solid #f1f5f9;">';
+  h+='<div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;">';
+  h+='<div style="width:3px;height:16px;border-radius:2px;background:#16a34a;"></div>';
+  h+='<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:#16a34a;">4 — Today&#39;s Wins</div>';
+  h+='</div>';
+  if(wins){
+    h+='<div style="font-size:12px;color:#374151;line-height:1.7;background:#f0fdf4;border-radius:7px;padding:9px 12px;">'+escHtml(wins)+'</div>';
+  } else {
+    h+='<div style="font-size:12px;color:#94a3b8;font-style:italic;padding:6px 0;">None recorded.</div>';
+  }
+  h+='</div>';
+
+  // Section 5 — Plan for Tomorrow
+  h+='<div style="padding:18px 20px;">';
+  h+='<div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;">';
+  h+='<div style="width:3px;height:16px;border-radius:2px;background:#7c3aed;"></div>';
+  h+='<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:#7c3aed;">5 — Plan for Tomorrow</div>';
+  h+='</div>';
+  if(tmrVals.length){
+    h+='<div style="display:flex;flex-direction:column;gap:5px;">';
+    var tmrBg=['#fef2f2','#fffbeb','#f0fdf4','#eef2ff'];
+    var tmrTc=['#dc2626','#b45309','#16a34a','#4f46e5'];
+    tmrVals.forEach(function(val,i){
+      h+='<div style="display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:0.5px solid #f1f5f9;">';
+      h+='<span style="background:'+tmrBg[i]+';color:'+tmrTc[i]+';padding:1px 8px;border-radius:99px;font-size:10px;font-weight:800;flex-shrink:0;margin-top:2px;">P'+(i+1)+'</span>';
+      h+='<span style="font-size:12px;color:#374151;line-height:1.5;">'+escHtml(val)+'</span>';
+      h+='</div>';
+    });
+    h+='</div>';
+  } else {
+    h+='<div style="font-size:12px;color:#94a3b8;font-style:italic;padding:6px 0;">Not yet planned.</div>';
+  }
+  h+='</div>';
+
+  h+='</div>'; // end 3-col section row
+
+  // ── FOOTER ──
+  h+='<div style="background:#f8fafc;padding:10px 28px;display:flex;align-items:center;justify-content:space-between;border-top:2px solid #f1f5f9;">';
+  h+='<span style="font-size:10px;color:#94a3b8;letter-spacing:0.05em;">ManifestGlobal Talent Acquisition · Confidential</span>';
+  h+='<span style="font-size:10px;color:#94a3b8;">'+escHtml(member)+' ('+memberRole+') · '+date+'</span>';
+  h+='</div>';
+
+  h+='</div>'; // end card
+
+  previewEl.innerHTML=h;
+  renderPipelineSummary();
+}
+
+function screenshotReport(){
+  var card=document.getElementById('dr-report-card');
+  if(!card){showToast('Generate the report first.');return;}
+  // Open print dialog focused on the card
+  var w=window.open('','_blank','width=1000,height=800');
+  if(!w){showToast('Allow popups to use screenshot.');return;}
+  var styles='body{margin:0;padding:20px;background:#f5f4f0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}';
+  w.document.write('<!DOCTYPE html><html><head><title>Daily Report</title><style>'+styles+'</style></head><body>'+card.outerHTML+'</body></html>');
+  w.document.close();
+  setTimeout(function(){w.focus();w.print();},400);
+}
+
+function copyDRReport(){
+  var el=document.getElementById('dr-preview');
+  if(!el)return;
+  // Get plain text version
+  var text=el.innerText||el.textContent;
+  navigator.clipboard.writeText(text).then(function(){showToast('Report copied to clipboard!');}).catch(function(){showToast('Copy failed — please select and copy manually.');});
+}
+
+function saveDRRecord(){
+  var date=gv('dr-date')||'No date';
+  var previewEl=document.getElementById('dr-preview');
+  if(!previewEl||!drMember.name){showToast('Please select your name first.');return;}
+  var dept=gv('dr-dept-sel')||'—';
+  var week=gv('dr-week')||'—';
+
+  // Build row data for the records table display
+  var pipelineRows=[];
+  drPipelineRows.forEach(function(idx){
+    var rowEl=document.getElementById('dr-pr-'+idx);
+    if(!rowEl)return;
+    var role=gv('pr-role-'+idx);
+    if(!role)return;
+    pipelineRows.push({
+      role:role,
+      pri:gv('pr-pri-'+idx)||'2',
+      stage:gv('pr-stage-'+idx)||'—',
+      cands:gv('pr-cands-'+idx)||'0',
+      milestone:gv('pr-milestone-'+idx)||'—',
+      close:gv('pr-close-'+idx)||'—',
+      notes:gv('pr-notes-'+idx)||''
+    });
+  });
+
+  var flagRows=[];
+  drFlags.forEach(function(idx){
+    var el=document.getElementById('flag-text-'+idx);
+    var typeEl=document.getElementById('flag-type-'+idx);
+    if(el&&el.value.trim())flagRows.push({type:typeEl?typeEl.value:'amber',text:el.value.trim()});
+  });
+
+  var rec={
+    type:'dr',
+    typeLabel:'Daily Report',
+    savedBy:drMember.name,
+    period:date,
+    full:date+' · '+dept+' · Week '+week,
+    savedAt:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),
+    dept:dept,
+    week:week,
+    snap:{
+      totalRoles:gv('sn-total-roles')||'—',
+      pipeline:gv('sn-pipeline')||'—',
+      attention:gv('sn-attention')||'—',
+      offers:gv('sn-offers')||'—',
+      priHigh:gv('pr-high')||'0',
+      priMid:gv('pr-mid')||'0',
+      priLow:gv('pr-low')||'0'
+    },
+    pipelineStatus:{
+      sourcing:'0',screening:'0',mgrIv:'0',final:'0',offer:'0',hold:'0'
+    },
+    subMetrics:{
+      screening:gv('sub-screening')||'0',
+      mgrIvs:gv('sub-mgr-ivs')||'0',
+      accepted:gv('sub-accepted')||'0'
+    },
+    pipelineRows:pipelineRows,
+    flags:flagRows,
+    wins:gv('dr-wins')||'',
+    tomorrow:[gv('tmr-1'),gv('tmr-2'),gv('tmr-3'),gv('tmr-4')].filter(Boolean)
+  };
+
+  records.push(rec);
+  renderDRRecords();
+  showToast('Report saved — '+date+' by '+drMember.name);
+}
+
+function renderDRRecords(){
+  var wrap=document.getElementById('dr-records-wrap');
+  if(!wrap)return;
+  var drRecs=records.filter(function(r){return r.type==='dr';});
+  if(!drRecs.length){wrap.innerHTML='<div class="empty-state">No daily reports saved yet.</div>';return;}
+  wrap.innerHTML='';
+  drRecs.slice().reverse().forEach(function(rec){
+    var col=MEMBER_COLORS[rec.savedBy]||'#888';
+    var snap=rec.snap||{};
+    var ps=rec.pipelineStatus||{};
+    var sm=rec.subMetrics||{};
+    var div=document.createElement('div');
+    div.style.cssText='border:1px solid #e4e2da;border-radius:10px;padding:16px;margin-bottom:12px;';
+
+    var roleRows=(rec.pipelineRows&&rec.pipelineRows.length)?rec.pipelineRows.map(function(p){
+      var priLabel=p.pri==='1'?'<span style="background:#fef2f2;color:#dc2626;padding:1px 7px;border-radius:99px;font-size:10px;font-weight:600;">P1</span>':
+                   p.pri==='3'?'<span style="background:#f0fdf4;color:#16a34a;padding:1px 7px;border-radius:99px;font-size:10px;font-weight:600;">P3</span>':
+                   '<span style="background:#fffbeb;color:#b45309;padding:1px 7px;border-radius:99px;font-size:10px;font-weight:600;">P2</span>';
+      return'<tr><td>'+p.role+'</td><td>'+priLabel+'</td><td>'+p.stage+'</td><td style="text-align:center;">'+p.cands+'</td><td>'+p.milestone+'</td><td>'+p.close+'</td>'+(p.notes?'<td style="color:#888;font-size:11px;">'+p.notes+'</td>':'<td></td>')+'</tr>';
+    }).join(''):'<tr><td colspan="7" style="color:#aaa;text-align:center;font-size:12px;">No roles entered</td></tr>';
+
+    var flagHtml=(rec.flags&&rec.flags.length)?rec.flags.map(function(f){
+      return'<div style="display:flex;align-items:flex-start;gap:6px;padding:5px 0;border-bottom:0.5px solid #f0efeb;">'+
+        (f.type==='red'?'<span style="background:#fef2f2;color:#dc2626;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;flex-shrink:0;">🔴 Blocker</span>':'<span style="background:#fffbeb;color:#b45309;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;flex-shrink:0;">🟡 Risk</span>')+
+        '<span style="font-size:12px;color:#444;">'+f.text+'</span></div>';
+    }).join(''):'';
+
+    var tmrHtml=(rec.tomorrow&&rec.tomorrow.length)?rec.tomorrow.map(function(t,i){
+      return'<div style="font-size:12px;padding:3px 0;border-bottom:0.5px solid #f0efeb;"><span style="font-size:10px;font-weight:600;color:#6c63ff;margin-right:6px;">P'+(i+1)+'</span>'+t+'</div>';
+    }).join(''):'';
+
+    div.innerHTML=
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">'+
+        '<div style="display:flex;align-items:center;gap:10px;">'+
+          '<div style="width:30px;height:30px;border-radius:50%;background:'+col+';display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;">'+rec.savedBy[0]+'</div>'+
+          '<div><div style="font-size:13px;font-weight:600;color:#1a1a18;">'+rec.savedBy+'</div>'+
+          '<div style="font-size:11px;color:#888;">'+rec.dept+' · '+rec.period+' · Week '+rec.week+'</div></div>'+
+        '</div>'+
+        '<span style="font-size:11px;color:#aaa;background:#f5f4f0;padding:3px 10px;border-radius:99px;">Saved '+rec.savedAt+'</span>'+
+      '</div>'+
+
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px;margin-bottom:14px;">'+
+        '<div class="s-card"><div class="s-lbl">Open roles</div><div class="s-val" style="color:#6c63ff;">'+snap.totalRoles+'</div></div>'+
+        '<div class="s-card"><div class="s-lbl">In pipeline</div><div class="s-val">'+snap.pipeline+'</div></div>'+
+        '<div class="s-card"><div class="s-lbl">Attention</div><div class="s-val" style="color:#dc2626;">'+snap.attention+'</div></div>'+
+        '<div class="s-card"><div class="s-lbl">Offers out</div><div class="s-val">'+snap.offers+'</div></div>'+
+        '<div class="s-card"><div class="s-lbl">Screening</div><div class="s-val">'+sm.screening+'</div></div>'+
+        '<div class="s-card"><div class="s-lbl">Mgr IVs</div><div class="s-val">'+sm.mgrIvs+'</div></div>'+
+        '<div class="s-card"><div class="s-lbl">Accepted</div><div class="s-val" style="color:#16a34a;">'+sm.accepted+'</div></div>'+
+      '</div>'+
+
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">'+
+        '<span style="background:#fef2f2;color:#dc2626;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:600;">🔴 High: '+snap.priHigh+'</span>'+
+        '<span style="background:#fffbeb;color:#b45309;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:600;">🟡 Mid: '+snap.priMid+'</span>'+
+        '<span style="background:#f0fdf4;color:#16a34a;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:600;">🟢 Low: '+snap.priLow+'</span>'+
+        '<span style="background:#f5f4f0;padding:3px 10px;border-radius:99px;font-size:11px;color:#444;">Sourcing: '+ps.sourcing+'</span>'+
+        '<span style="background:#eef2ff;color:#4f46e5;padding:3px 10px;border-radius:99px;font-size:11px;">Screening: '+ps.screening+'</span>'+
+        '<span style="background:#fef3c7;color:#b45309;padding:3px 10px;border-radius:99px;font-size:11px;">Mgr IV: '+ps.mgrIv+'</span>'+
+        '<span style="background:#f5f3ff;color:#7c3aed;padding:3px 10px;border-radius:99px;font-size:11px;">Final: '+ps.final+'</span>'+
+        '<span style="background:#f0fdf4;color:#16a34a;padding:3px 10px;border-radius:99px;font-size:11px;">Offer: '+ps.offer+'</span>'+
+        '<span style="background:#fef2f2;color:#dc2626;padding:3px 10px;border-radius:99px;font-size:11px;">On Hold: '+ps.hold+'</span>'+
+      '</div>'+
+
+      '<div style="font-size:11px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Active Roles</div>'+
+      '<div style="overflow-x:auto;margin-bottom:14px;">'+
+        '<table class="records-table"><thead><tr><th>Role</th><th>Pri</th><th>Stage</th><th>Cands</th><th>Next milestone</th><th>Close</th><th>Notes</th></tr></thead>'+
+        '<tbody>'+roleRows+'</tbody></table></div>'+
+
+      (flagHtml?'<div style="font-size:11px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Flags &amp; Blockers</div><div style="margin-bottom:14px;">'+flagHtml+'</div>':'')+
+      (rec.wins?'<div style="font-size:11px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">Today&#39;s Wins</div><div style="font-size:12px;color:#444;padding:8px 12px;background:#f5f4f0;border-radius:8px;margin-bottom:14px;">'+rec.wins+'</div>':'')+
+      (tmrHtml?'<div style="font-size:11px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Plan for Tomorrow</div><div>'+tmrHtml+'</div>':'');
+
+    wrap.appendChild(div);
+  });
+}
+
+function exportDRExcel(){
+  var date=gv('dr-date')||'—';
+  var week=gv('dr-week')||'—';
+  var dept=gv('dr-dept-sel')||'All';
+  var member=drMember.name||'—';
+
+  var snapData=[
+    ['Member',member],['Role',drMember.role==='sourcer'?'Sourcer':'Recruiter'],['Department',dept],['Date',date],['Week',week],[''],
+    ['SNAPSHOT',''],
+    ['Open roles (this dept)',gv('sn-total-roles')||''],
+    ['Candidates in pipeline',gv('sn-pipeline')||''],
+    ['Roles needing attention',gv('sn-attention')||''],
+    ['Offers extended (week)',gv('sn-offers')||''],
+    [''],
+    ['PRIORITY ROLES',''],
+    ['High priority',gv('pr-high')||''],
+    ['Mid priority',gv('pr-mid')||''],
+    ['Low priority',gv('pr-low')||''],
+    [''],
+    ['PIPELINE METRICS',''],
+    ['Screening today',gv('sub-screening')||''],
+    ['Mgr interviews scheduled',gv('sub-mgr-ivs')||''],
+    ['Offers accepted',gv('sub-accepted')||'']
+  ];
+
+  var pipelineData=[['Role / Dept','Priority','Stage','Candidates','Next Milestone','Target Close','Notes']];
+  drPipelineRows.forEach(function(idx){
+    var rowEl=document.getElementById('dr-pr-'+idx);
+    if(!rowEl)return;
+    pipelineData.push([gv('pr-role-'+idx),gv('pr-pri-'+idx),gv('pr-stage-'+idx),gv('pr-cands-'+idx),gv('pr-milestone-'+idx),gv('pr-close-'+idx),gv('pr-notes-'+idx)]);
+  });
+
+  var flagsData=[['Type','Description']];
+  drFlags.forEach(function(idx){
+    var el=document.getElementById('flag-text-'+idx);
+    var typeEl=document.getElementById('flag-type-'+idx);
+    if(el&&el.value.trim()){flagsData.push([typeEl?typeEl.value.toUpperCase():'RISK',el.value.trim()]);}
+  });
+
+  var planData=[['WINS'],[(gv('dr-wins')||'None')],[''],['PLAN FOR TOMORROW'],['P1',gv('tmr-1')],['P2',gv('tmr-2')],['P3',gv('tmr-3')],['P4',gv('tmr-4')]];
+
+  writeExcel([
+    {name:'Snapshot',data:snapData},
+    {name:'Pipeline',data:pipelineData},
+    {name:'Flags',data:flagsData},
+    {name:'Wins & Plan',data:planData}
+  ],'DailyReport_'+member.replace(/\s/g,'')+'_'+date+'.xlsx');
+}
+
+function initDailyReport(){
+  if(drInited)return;drInited=true;
+  var today=new Date();
+  var y=today.getFullYear(),mo=String(today.getMonth()+1).padStart(2,'0'),d=String(today.getDate()).padStart(2,'0');
+  var dateEl=document.getElementById('dr-date');
+  if(dateEl)dateEl.value=y+'-'+mo+'-'+d;
+  // Pre-select logged-in user if they match a member
+  if(currentUser&&currentUser!=='Admin'){
+    var btns=document.querySelectorAll('.dr-member-btn');
+    btns.forEach(function(btn){
+      if(btn.textContent.trim()===currentUser){btn.click();}
+    });
+  }
+}
+
+/* ── FILE UPLOAD FOR SECTION 2 ── */function escHtml(str){
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function populatePipelineRows(roles){
+  var tbody=document.getElementById('dr-pipeline-body');
+  if(!tbody)return;
+  tbody.innerHTML='';
+  drPipelineRows=[];
+  roles.forEach(function(r){
+    var idx=drPipelineRows.length;
+    drPipelineRows.push(idx);
+    var tr=document.createElement('tr');
+    tr.id='dr-pr-'+idx;
+    var priVal=String(r.priority||'2');
+    var stageOpts=['Sourcing','Screening','Interview Scheduled','Mgr Interview','Final Round','Offer Stage','Offer Accepted','On Hold'];
+    var stageVal=r.stage||'Sourcing';
+    var stageOptions=stageOpts.map(function(s){return'<option'+(s===stageVal?' selected':'')+'>'+s+'</option>';}).join('');
+    tr.innerHTML=
+      '<td><input class="dr-td-input" type="text" value="'+escHtml(r.role||'')+'" placeholder="Role title" id="pr-role-'+idx+'" oninput="updateDRPreview()"></td>'+
+      '<td><select class="dr-stage-select" id="pr-pri-'+idx+'" onchange="updateDRPreview()">'+
+        '<option value="1"'+(priVal==='1'?' selected':'')+'>🔴 1 – High</option>'+
+        '<option value="2"'+(priVal==='2'?' selected':'')+'>🟡 2 – Mid</option>'+
+        '<option value="3"'+(priVal==='3'?' selected':'')+'>🟢 3 – Low</option>'+
+      '</select></td>'+
+      '<td><select class="dr-stage-select" id="pr-stage-'+idx+'" onchange="updateDRPreview()">'+stageOptions+'</select></td>'+
+      '<td style="text-align:center;"><input class="dr-td-input" type="number" min="0" value="'+(r.candidates||0)+'" id="pr-cands-'+idx+'" style="width:44px;text-align:center;" oninput="updateDRPreview()"></td>'+
+      '<td><input class="dr-td-input" type="text" value="'+escHtml(r.milestone||'')+'" id="pr-milestone-'+idx+'" oninput="updateDRPreview()"></td>'+
+      '<td><input class="dr-td-input" type="date" value="'+(r.close||'')+'" id="pr-close-'+idx+'" oninput="updateDRPreview()"></td>'+
+      '<td><input class="dr-td-input" type="text" value="'+escHtml(r.notes||'')+'" id="pr-notes-'+idx+'" oninput="updateDRPreview()"></td>'+
+      '<td><button class="dr-remove-row" onclick="removePipelineRow('+idx+')">✕</button></td>';
+    tbody.appendChild(tr);
+  });
+  updateDRPreview();
+}
+
+function quickAddRoles(){
+  var ta=document.getElementById('dr-quick-add');
+  if(!ta||!ta.value.trim())return;
+  var lines=ta.value.split('\n').map(function(l){return l.trim();}).filter(function(l){return l.length>1;});
+  if(!lines.length)return;
+
+  var priMap={'high':'1','h':'1','1':'1','low':'3','l':'3','3':'3','mid':'2','m':'2','2':'2'};
+
+  lines.forEach(function(line){
+    var parts=line.split(',').map(function(p){return p.trim();});
+    var roleName=parts[0]||'';
+    if(!roleName)return;
+
+    // Extract priority (2nd part if it looks like priority)
+    var priority='2';
+    var candidates=0;
+    if(parts.length>=2){
+      var p2=parts[1].toLowerCase().trim();
+      if(priMap[p2]){
+        priority=priMap[p2];
+        if(parts.length>=3){
+          var c=parseInt(parts[2]);
+          if(!isNaN(c))candidates=c;
+        }
+      } else {
+        var c2=parseInt(parts[1]);
+        if(!isNaN(c2))candidates=c2;
+      }
+    }
+
+    var idx=drPipelineRows.length;
+    drPipelineRows.push(idx);
+    var tbody=document.getElementById('dr-pipeline-body');
+    if(!tbody)return;
+    var tr=document.createElement('tr');
+    tr.id='dr-pr-'+idx;
+    var stageOpts=['Sourcing','Screening','Interview Scheduled','Mgr Interview','Final Round','Offer Stage','Offer Accepted','On Hold'];
+    var stageOptions=stageOpts.map(function(s){return'<option>'+s+'</option>';}).join('');
+    tr.innerHTML=
+      '<td><input class="dr-td-input" type="text" value="'+escHtml(roleName)+'" placeholder="Role title" id="pr-role-'+idx+'" oninput="updateDRPreview()"></td>'+
+      '<td><select class="dr-stage-select" id="pr-pri-'+idx+'" onchange="updateDRPreview()">'+
+        '<option value="1"'+(priority==='1'?' selected':'')+'>&#128308; 1 \u2013 High</option>'+
+        '<option value="2"'+(priority==='2'?' selected':'')+'>&#128993; 2 \u2013 Mid</option>'+
+        '<option value="3"'+(priority==='3'?' selected':'')+'>&#128994; 3 \u2013 Low</option>'+
+      '</select></td>'+
+      '<td><select class="dr-stage-select" id="pr-stage-'+idx+'" onchange="updateDRPreview()">'+stageOptions+'</select></td>'+
+      '<td style="text-align:center;"><input class="dr-td-input" type="number" min="0" value="'+candidates+'" id="pr-cands-'+idx+'" style="width:44px;text-align:center;" oninput="updateDRPreview()"></td>'+
+      '<td><input class="dr-td-input" type="text" value="" placeholder="e.g. Final interview Fri" id="pr-milestone-'+idx+'" oninput="updateDRPreview()"></td>'+
+      '<td><input class="dr-td-input" type="date" id="pr-close-'+idx+'" oninput="updateDRPreview()"></td>'+
+      '<td><input class="dr-td-input" type="text" value="" placeholder="Notes..." id="pr-notes-'+idx+'" oninput="updateDRPreview()"></td>'+
+      '<td><button class="dr-remove-row" onclick="removePipelineRow('+idx+')">&#x2715;</button></td>';
+    tbody.appendChild(tr);
+  });
+
+  ta.value='';
+  updateDRPreview();
+}
+
+function renderPipelineSummary(){
+  var wrap=document.getElementById('dr-pipeline-summary');
+  if(!wrap)return;
+
+  var stageColors={
+    'Sourcing':'#f5f4f0','Screening':'#eef2ff','Interview Scheduled':'#fef9c3',
+    'Mgr Interview':'#fef3c7','Final Round':'#f5f3ff','Offer Stage':'#f0fdf4',
+    'Offer Accepted':'#dcfce7','On Hold':'#fef2f2'
+  };
+  var stageText={
+    'Sourcing':'#888','Screening':'#4f46e5','Interview Scheduled':'#854d0e',
+    'Mgr Interview':'#b45309','Final Round':'#7c3aed','Offer Stage':'#16a34a',
+    'Offer Accepted':'#15803d','On Hold':'#dc2626'
+  };
+
+  var rows=[];
+  drPipelineRows.forEach(function(idx){
+    var rowEl=document.getElementById('dr-pr-'+idx);
+    if(!rowEl)return;
+    var role=gv('pr-role-'+idx);
+    if(!role)return;
+    var stage=gv('pr-stage-'+idx)||'Sourcing';
+    var cands=gv('pr-cands-'+idx)||'0';
+    var pri=gv('pr-pri-'+idx)||'2';
+    rows.push({role:role,stage:stage,cands:cands,pri:pri});
+  });
+
+  if(!rows.length){
+    wrap.innerHTML='<div style="font-size:13px;color:#aaa;text-align:center;padding:16px;">Add roles in section 2 to see the summary here.</div>';
+    return;
+  }
+
+  // Build table
+  var html='<div style="overflow-x:auto;"><table class="dr-pipeline-table"><thead><tr>';
+  html+='<th>Role</th><th>Priority</th><th>Pipeline Stage</th><th style="text-align:center;">Candidates in Pipeline</th>';
+  html+='</tr></thead><tbody>';
+  rows.forEach(function(r){
+    var bg=stageColors[r.stage]||'#f5f4f0';
+    var tc=stageText[r.stage]||'#666';
+    var priLabel=r.pri==='1'?'<span style="background:#fef2f2;color:#dc2626;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;">&#128308; High</span>':
+                 r.pri==='3'?'<span style="background:#f0fdf4;color:#16a34a;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;">&#128994; Low</span>':
+                 '<span style="background:#fffbeb;color:#b45309;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;">&#128993; Mid</span>';
+    var stageLabel='<span style="background:'+bg+';color:'+tc+';padding:2px 10px;border-radius:99px;font-size:11px;font-weight:500;">'+r.stage+'</span>';
+    html+='<tr><td style="font-weight:500;">'+escHtml(r.role)+'</td><td>'+priLabel+'</td><td>'+stageLabel+'</td><td style="text-align:center;font-size:16px;font-weight:700;color:#1a1a18;">'+r.cands+'</td></tr>';
+  });
+  html+='</tbody></table></div>';
+
+  // Stage count pills at bottom
+  var stageCounts={};
+  rows.forEach(function(r){stageCounts[r.stage]=(stageCounts[r.stage]||0)+1;});
+  html+='<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;padding-top:12px;border-top:0.5px solid #e4e2da;">';
+  Object.keys(stageCounts).forEach(function(s){
+    var bg=stageColors[s]||'#f5f4f0';
+    var tc=stageText[s]||'#666';
+    html+='<span style="background:'+bg+';color:'+tc+';padding:3px 10px;border-radius:99px;font-size:11px;font-weight:500;">'+s+': '+stageCounts[s]+'</span>';
+  });
+  html+='</div>';
+
+  wrap.innerHTML=html;
+}
+
+function addPipelineRowB(){
+  var idx=drPipelineRowsB.length;
+  drPipelineRowsB.push(idx);
+  var tbody=document.getElementById('dr-pipeline-body-b');
+  if(!tbody)return;
+  var tr=document.createElement('tr');
+  tr.id='dr-pr-b-'+idx;
+  var stageOpts=['Sourcing','Screening','Interview Scheduled','Mgr Interview','Final Round','Offer Stage','Offer Accepted','On Hold'];
+  var stageOptions=stageOpts.map(function(s){return'<option>'+s+'</option>';}).join('');
+  tr.innerHTML=
+    '<td><input class="dr-td-input" type="text" placeholder="Role title" id="pr-b-role-'+idx+'" oninput="updateDRPreview()"></td>'+
+    '<td><select class="dr-stage-select" id="pr-b-pri-'+idx+'" onchange="updateDRPreview()">'+
+      '<option value="1">&#128308; 1 – High</option>'+
+      '<option value="2" selected>&#128993; 2 – Mid</option>'+
+      '<option value="3">&#128994; 3 – Low</option>'+
+    '</select></td>'+
+    '<td><select class="dr-stage-select" id="pr-b-stage-'+idx+'" onchange="updateDRPreview()">'+stageOptions+'</select></td>'+
+    '<td style="text-align:center;"><input class="dr-td-input" type="number" min="0" placeholder="0" id="pr-b-cands-'+idx+'" style="width:44px;text-align:center;" oninput="updateDRPreview()"></td>'+
+    '<td><input class="dr-td-input" type="text" placeholder="e.g. Final interview Fri" id="pr-b-milestone-'+idx+'" oninput="updateDRPreview()"></td>'+
+    '<td><input class="dr-td-input" type="date" id="pr-b-close-'+idx+'" oninput="updateDRPreview()"></td>'+
+    '<td><input class="dr-td-input" type="text" placeholder="Notes..." id="pr-b-notes-'+idx+'" oninput="updateDRPreview()"></td>'+
+    '<td><button class="dr-remove-row" onclick="removePipelineRowB('+idx+')">&#x2715;</button></td>';
+  tbody.appendChild(tr);
+}
+
+function removePipelineRowB(idx){
+  var row=document.getElementById('dr-pr-b-'+idx);
+  if(row)row.remove();
+  drPipelineRowsB=drPipelineRowsB.filter(function(i){return i!==idx;});
+  updateDRPreview();
+}
+
+function quickAddRolesB(){
+  var ta=document.getElementById('dr-quick-add-b');
+  if(!ta||!ta.value.trim())return;
+  var lines=ta.value.split('\n').map(function(l){return l.trim();}).filter(function(l){return l.length>1;});
+  if(!lines.length)return;
+  var priMap={'high':'1','h':'1','1':'1','low':'3','l':'3','3':'3','mid':'2','m':'2','2':'2'};
+  lines.forEach(function(line){
+    var parts=line.split(',').map(function(p){return p.trim();});
+    var roleName=parts[0]||'';
+    if(!roleName)return;
+    var priority='2';
+    var candidates=0;
+    if(parts.length>=2){
+      var p2=parts[1].toLowerCase().trim();
+      if(priMap[p2]){
+        priority=priMap[p2];
+        if(parts.length>=3){var c=parseInt(parts[2]);if(!isNaN(c))candidates=c;}
+      } else {
+        var c2=parseInt(parts[1]);if(!isNaN(c2))candidates=c2;
+      }
+    }
+    var idx=drPipelineRowsB.length;
+    drPipelineRowsB.push(idx);
+    var tbody=document.getElementById('dr-pipeline-body-b');
+    if(!tbody)return;
+    var tr=document.createElement('tr');
+    tr.id='dr-pr-b-'+idx;
+    var stageOpts=['Sourcing','Screening','Interview Scheduled','Mgr Interview','Final Round','Offer Stage','Offer Accepted','On Hold'];
+    var stageOptions=stageOpts.map(function(s){return'<option>'+s+'</option>';}).join('');
+    tr.innerHTML=
+      '<td><input class="dr-td-input" type="text" value="'+escHtml(roleName)+'" placeholder="Role title" id="pr-b-role-'+idx+'" oninput="updateDRPreview()"></td>'+
+      '<td><select class="dr-stage-select" id="pr-b-pri-'+idx+'" onchange="updateDRPreview()">'+
+        '<option value="1"'+(priority==='1'?' selected':'')+'>&#128308; 1 – High</option>'+
+        '<option value="2"'+(priority==='2'?' selected':'')+'>&#128993; 2 – Mid</option>'+
+        '<option value="3"'+(priority==='3'?' selected':'')+'>&#128994; 3 – Low</option>'+
+      '</select></td>'+
+      '<td><select class="dr-stage-select" id="pr-b-stage-'+idx+'" onchange="updateDRPreview()">'+stageOptions+'</select></td>'+
+      '<td style="text-align:center;"><input class="dr-td-input" type="number" min="0" value="'+candidates+'" id="pr-b-cands-'+idx+'" style="width:44px;text-align:center;" oninput="updateDRPreview()"></td>'+
+      '<td><input class="dr-td-input" type="text" value="" id="pr-b-milestone-'+idx+'" oninput="updateDRPreview()"></td>'+
+      '<td><input class="dr-td-input" type="date" id="pr-b-close-'+idx+'" oninput="updateDRPreview()"></td>'+
+      '<td><input class="dr-td-input" type="text" value="" id="pr-b-notes-'+idx+'" oninput="updateDRPreview()"></td>'+
+      '<td><button class="dr-remove-row" onclick="removePipelineRowB('+idx+')">&#x2715;</button></td>';
+    tbody.appendChild(tr);
+  });
+  ta.value='';
+  updateDRPreview();
+}
+
+window.addEventListener('DOMContentLoaded',function(){
+  ['b','c','d','e','g'].forEach(function(p){populateYears(p+'-year');updatePeriod(p);});
+  populateFYears();
+  buildDepts();buildFunnel();buildDeptPanels();buildEDepts();buildFDepts();buildGDepts();
+  populateMemberFilter();renderRecords();
+});
+</script>
+</body>
+</html>
