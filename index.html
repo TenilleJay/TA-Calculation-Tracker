@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Talent Acquisition — Calculation Tracker</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f4f0;color:#1a1a18;min-height:100vh;}
@@ -107,6 +108,65 @@ footer{text-align:center;padding:28px 24px;font-size:12px;color:#aaa;border-top:
 .user-bar{display:flex;align-items:center;gap:8px;}
 .user-badge{display:flex;align-items:center;gap:8px;padding:6px 12px;background:#eef2ff;border-radius:99px;font-size:13px;font-weight:500;color:#4f46e5;}
 .switch-btn{font-size:12px;color:#888;cursor:pointer;padding:4px 8px;border-radius:6px;border:1px solid #e4e2da;background:#fff;font-family:inherit;}
+
+/* ── DAILY REPORT ── */
+.dr-date-bar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:0;}
+.dr-date-bar label{font-size:13px;color:#666;}
+.dr-date-bar input[type=date]{padding:7px 12px;border:1px solid #e4e2da;border-radius:8px;font-size:13px;font-family:inherit;outline:none;background:#fff;color:#1a1a18;}
+.dr-date-bar input[type=date]:focus{border-color:#6c63ff;}
+.dr-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:0;}
+.dr-metric{background:#f5f4f0;border-radius:10px;padding:14px 16px;text-align:center;}
+.dr-metric-lbl{font-size:11px;color:#888;margin-bottom:6px;line-height:1.4;}
+.dr-metric-val{font-size:26px;font-weight:700;color:#1a1a18;line-height:1;}
+.dr-metric-val input{background:none;border:none;border-bottom:1.5px dashed #ccc;outline:none;font-size:26px;font-weight:700;color:#1a1a18;width:60px;text-align:center;font-family:inherit;padding:0;}
+.dr-metric-val input:focus{border-bottom-color:#6c63ff;}
+.dr-metric-sub{font-size:11px;color:#aaa;margin-top:4px;}
+.dr-team-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;}
+.dr-team-card{border:1px solid #e4e2da;border-radius:10px;padding:16px;background:#fff;position:relative;overflow:hidden;}
+.dr-team-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.dr-r1::before{background:#6c63ff;}.dr-r2::before{background:#2563eb;}.dr-r3::before{background:#16a34a;}.dr-s1::before{background:#9333ea;}
+.dr-card-header{margin-bottom:12px;}
+.dr-name-input{font-size:13px;font-weight:600;color:#1a1a18;background:none;border:none;border-bottom:1px dashed #e4e2da;outline:none;width:100%;padding:0 0 3px;font-family:inherit;}
+.dr-name-input:focus{border-bottom-color:#6c63ff;}
+.dr-role-lbl{font-size:10px;color:#aaa;text-transform:uppercase;letter-spacing:0.08em;margin-top:4px;}
+.dr-stat-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:0.5px solid #f0efeb;}
+.dr-stat-row:last-child{border-bottom:none;}
+.dr-stat-lbl{font-size:11px;color:#666;}
+.dr-stat-input{font-size:12px;font-weight:600;color:#1a1a18;background:none;border:none;border-bottom:1px dashed #e4e2da;outline:none;width:44px;text-align:center;font-family:inherit;padding:0;}
+.dr-stat-input:focus{border-bottom-color:#6c63ff;}
+.dr-pipeline-table{width:100%;border-collapse:collapse;font-size:12px;}
+.dr-pipeline-table th{text-align:left;padding:8px 10px;border-bottom:2px solid #e4e2da;color:#666;font-weight:500;font-size:11px;white-space:nowrap;}
+.dr-pipeline-table td{padding:7px 10px;border-bottom:1px solid #f0efeb;vertical-align:middle;}
+.dr-pipeline-table tr:hover td{background:#fafaf8;}
+.dr-pipeline-table tr:last-child td{border-bottom:none;}
+.dr-td-input{background:none;border:none;border-bottom:1px dashed #e4e2da;outline:none;font-size:12px;color:#1a1a18;font-family:inherit;padding:2px 0;width:100%;}
+.dr-td-input:focus{border-bottom-color:#6c63ff;}
+.dr-stage-select{font-size:11px;padding:3px 8px;border:1px solid #e4e2da;border-radius:99px;background:#fff;outline:none;font-family:inherit;color:#1a1a18;cursor:pointer;}
+.dr-stage-select:focus{border-color:#6c63ff;}
+.dr-add-row-btn{font-size:12px;color:#6c63ff;background:none;border:1px dashed #b0acf5;border-radius:8px;padding:7px 14px;cursor:pointer;font-family:inherit;width:100%;margin-top:10px;}
+.dr-add-row-btn:hover{background:#f5f4ff;}
+.dr-remove-row{font-size:11px;color:#dc2626;background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:4px;font-family:inherit;}
+.dr-remove-row:hover{background:#fef2f2;}
+.flag-section{display:flex;flex-direction:column;gap:8px;}
+.flag-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:8px;background:#f5f4f0;}
+.flag-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.flag-dot-red{background:#dc2626;}.flag-dot-amber{background:#f59e0b;}
+.flag-text-input{flex:1;background:none;border:none;border-bottom:1px dashed #ccc;outline:none;font-size:13px;color:#1a1a18;font-family:inherit;padding:0 0 2px;line-height:1.5;}
+.flag-text-input:focus{border-bottom-color:#6c63ff;}
+.flag-type-select{font-size:11px;padding:3px 6px;border:1px solid #e4e2da;border-radius:6px;background:#fff;outline:none;font-family:inherit;cursor:pointer;flex-shrink:0;}
+.wins-textarea{width:100%;border:1px solid #e4e2da;border-radius:8px;padding:10px 12px;font-size:13px;font-family:inherit;resize:vertical;min-height:70px;outline:none;color:#1a1a18;background:#fff;line-height:1.6;}
+.wins-textarea:focus{border-color:#6c63ff;}
+.tomorrow-items{display:flex;flex-direction:column;gap:8px;}
+.tomorrow-row{display:flex;align-items:center;gap:10px;}
+.priority-badge{font-size:11px;padding:3px 10px;border-radius:99px;background:#eef2ff;color:#4f46e5;font-weight:500;white-space:nowrap;flex-shrink:0;}
+.tomorrow-input{flex:1;background:none;border:none;border-bottom:1px dashed #e4e2da;outline:none;font-size:13px;color:#1a1a18;font-family:inherit;padding:4px 0;}
+.tomorrow-input:focus{border-bottom-color:#6c63ff;}
+.dr-print-preview{background:#f5f4f0;border-radius:10px;padding:20px 24px;margin-top:4px;font-size:13px;line-height:1.8;color:#1a1a18;white-space:pre-wrap;font-family:inherit;}
+.dr-copy-btn{font-size:12px;color:#6c63ff;background:#eef2ff;border:none;border-radius:8px;padding:7px 16px;cursor:pointer;font-family:inherit;font-weight:500;}
+.dr-copy-btn:hover{background:#e0e7ff;}
+.dr-member-btn{padding:10px 12px;border:1.5px solid #e4e2da;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;background:#fff;color:#1a1a18;font-family:inherit;transition:all .15s;text-align:center;}
+.dr-member-btn:hover{border-color:#6c63ff;color:#6c63ff;background:#f5f4ff;}
+.dr-member-btn.dr-member-active{font-weight:600;}
 </style>
 </head>
 <body>
@@ -182,6 +242,7 @@ footer{text-align:center;padding:28px 24px;font-size:12px;color:#aaa;border-top:
   <div class="tab" onclick="switchTab('calcE',this)">Pipeline Coverage Ratio</div>
   <div class="tab" onclick="switchTab('calcF',this)">Time-in-Pipeline</div>
   <div class="tab" onclick="switchTab('calcG',this)">Post-Acceptance Withdrawal</div>
+  <div class="tab" onclick="switchTab('dailyReport',this)">Daily Report</div>
   <div class="tab" onclick="switchTab('records',this)">Saved Records</div>
   <div class="tab" onclick="switchTab('howto',this)">How to use</div>
   <div class="tab" id="admin-tab" style="display:none;" onclick="switchTab('admin',this)">Admin</div>
@@ -531,9 +592,15 @@ footer{text-align:center;padding:28px 24px;font-size:12px;color:#aaa;border-top:
 
   <!-- SAVED RECORDS -->
   <div class="section" id="records">
+    <div class="card" id="dr-saved-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+        <div><div class="card-title">Daily Reports</div><div style="font-size:13px;color:#888;margin-top:2px;">Saved daily recruiting reports.</div></div>
+      </div>
+      <div id="dr-records-wrap"><div class="empty-state">No daily reports saved yet.</div></div>
+    </div>
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
-        <div><div class="card-title">Saved records</div><div style="font-size:13px;color:#888;margin-top:2px;">All records saved by your team this session.</div></div>
+        <div><div class="card-title">Saved records</div><div style="font-size:13px;color:#888;margin-top:2px;">KPI calculation records saved by your team this session.</div></div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
           <select id="filter-member" onchange="renderRecords()" style="padding:7px 12px;border:1px solid #e4e2da;border-radius:8px;font-size:13px;font-family:inherit;outline:none;background:#fff;"><option value="all">All team members</option></select>
           <button class="btn btn-green" onclick="exportAllExcel()">Download all</button>
@@ -542,6 +609,62 @@ footer{text-align:center;padding:28px 24px;font-size:12px;color:#aaa;border-top:
       </div>
       <div id="all-records-wrap"></div>
     </div>
+  </div>
+
+  <!-- DAILY REPORT -->
+  <div class="section" id="dailyReport">
+
+    <!-- STEP 1: WHO ARE YOU + WHICH DEPT -->
+    <div class="card" id="dr-selector-card">
+      <div class="card-title">Daily Recruiting Progress Report</div>
+      <div class="card-sub">Select your name and department to open your personal report view.</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:8px;">
+        <div>
+          <div style="font-size:12px;font-weight:600;color:#1a1a18;margin-bottom:8px;">Who are you?</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <button class="dr-member-btn" onclick="selectDRMember(this,'Gloria','recruiter','#6c63ff')">Gloria</button>
+            <button class="dr-member-btn" onclick="selectDRMember(this,'Gaurav','recruiter','#2563eb')">Gaurav</button>
+            <button class="dr-member-btn" onclick="selectDRMember(this,'Vipul','recruiter','#16a34a')">Vipul</button>
+            <button class="dr-member-btn" onclick="selectDRMember(this,'Kartikey','sourcer','#9333ea')">Kartikey</button>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:600;color:#1a1a18;margin-bottom:8px;">Department</div>
+          <select id="dr-dept-sel" onchange="updateDRPreview()" style="width:100%;padding:8px 12px;border:1px solid #e4e2da;border-radius:8px;font-size:13px;font-family:inherit;outline:none;background:#fff;color:#1a1a18;">
+            <option value="">— Select department —</option>
+            <option>Talent</option>
+            <option>Finance</option>
+            <option>Central Marketing</option>
+            <option>Central Operations</option>
+            <option>Product</option>
+            <option>Engineering</option>
+            <option>Student Placement</option>
+            <option>Kaaiser</option>
+            <option>K12 Cialfo</option>
+            <option>K12 BridgeU</option>
+            <option>Explore</option>
+          </select>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:600;color:#1a1a18;margin-bottom:8px;">Report details</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;align-items:center;gap:8px;"><label style="font-size:12px;color:#666;min-width:60px;">Date</label><input type="date" id="dr-date" oninput="updateDRPreview()" style="flex:1;padding:6px 10px;border:1px solid #e4e2da;border-radius:8px;font-size:13px;font-family:inherit;outline:none;background:#fff;"></div>
+            <div style="display:flex;align-items:center;gap:8px;"><label style="font-size:12px;color:#666;min-width:60px;">Week #</label><input type="text" id="dr-week" placeholder="e.g. W16" oninput="updateDRPreview()" style="flex:1;padding:6px 10px;border:1px solid #e4e2da;border-radius:8px;font-size:13px;font-family:inherit;outline:none;background:#fff;"></div>
+          </div>
+        </div>
+      </div>
+      <div id="dr-active-banner" style="display:none;margin-top:16px;padding:10px 16px;border-radius:8px;background:#eef2ff;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div id="dr-banner-avatar" style="width:32px;height:32px;border-radius:50%;background:#6c63ff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;">?</div>
+          <div><div id="dr-banner-name" style="font-size:13px;font-weight:600;color:#1a1a18;">—</div><div id="dr-banner-meta" style="font-size:11px;color:#888;">—</div></div>
+        </div>
+        <button onclick="clearDRMember()" style="font-size:12px;color:#888;background:none;border:1px solid #e4e2da;border-radius:6px;padding:4px 10px;cursor:pointer;font-family:inherit;">Switch member</button>
+      </div>
+    </div>
+
+    <!-- INDIVIDUAL FORM (rendered dynamically) -->
+    <div id="dr-form-wrap" style="display:none;"></div>
+
   </div>
 
   <!-- HOW TO USE -->
@@ -802,6 +925,57 @@ function renderRecords(){
   var rev=filtered.slice().reverse();
   rev.forEach(function(rec){
     var col=MEMBER_COLORS[rec.savedBy]||'#888';var div=document.createElement('div');div.style.cssText='border:1px solid #e4e2da;border-radius:10px;padding:16px;margin-bottom:14px;';
+        if(rec.type==='dr'){
+      // Daily Report record
+      var snap=rec.snap||{};
+      var ps=rec.pipelineStatus||{};
+      var sm=rec.subMetrics||{};
+      var priHtml='<span style="background:#fef2f2;color:#dc2626;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;margin-right:4px;">🔴 High: '+snap.priHigh+'</span>'+
+        '<span style="background:#fffbeb;color:#b45309;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;margin-right:4px;">🟡 Mid: '+snap.priMid+'</span>'+
+        '<span style="background:#f0fdf4;color:#16a34a;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;">🟢 Low: '+snap.priLow+'</span>';
+      var flagHtml=(rec.flags&&rec.flags.length)?rec.flags.map(function(f){return'<div style="font-size:12px;padding:4px 0;">'+(f.type==='red'?'🔴':'🟡')+' '+f.text+'</div>';}).join(''):'<span style="color:#aaa;font-size:12px;">None</span>';
+      var tmrHtml=(rec.tomorrow&&rec.tomorrow.length)?rec.tomorrow.map(function(t,i){return'<div style="font-size:12px;padding:2px 0;">P'+(i+1)+'. '+t+'</div>';}).join(''):'<span style="color:#aaa;font-size:12px;">None</span>';
+      var roleRows=(rec.pipelineRows&&rec.pipelineRows.length)?rec.pipelineRows.map(function(p){
+        var priLabel=p.pri==='1'?'🔴 P1':p.pri==='3'?'🟢 P3':'🟡 P2';
+        return'<tr><td>'+p.role+'</td><td>'+priLabel+'</td><td>'+p.stage+'</td><td style="text-align:center;">'+p.cands+'</td><td>'+p.milestone+'</td><td>'+p.close+'</td></tr>';
+      }).join(''):'<tr><td colspan="6" style="color:#aaa;text-align:center;">No roles entered</td></tr>';
+      div.innerHTML=
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">'+
+          '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'+
+            '<div style="width:22px;height:22px;border-radius:50%;background:'+col+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;">'+rec.savedBy[0]+'</div>'+
+            '<span style="font-size:13px;font-weight:600;color:#1a1a18;">'+rec.savedBy+'</span>'+
+            '<span style="font-size:12px;padding:2px 10px;border-radius:99px;background:#eef2ff;color:#4f46e5;">Daily Report</span>'+
+            '<span style="font-size:12px;color:#888;">'+rec.full+'</span>'+
+          '</div>'+
+          '<span style="font-size:11px;color:#aaa;">'+rec.savedAt+'</span>'+
+        '</div>'+
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-bottom:14px;">'+
+          '<div class="s-card"><div class="s-lbl">Open roles (dept)</div><div class="s-val">'+snap.totalRoles+'</div></div>'+
+          '<div class="s-card"><div class="s-lbl">Pipeline candidates</div><div class="s-val">'+snap.pipeline+'</div></div>'+
+          '<div class="s-card"><div class="s-lbl">Needs attention</div><div class="s-val" style="color:#dc2626;">'+snap.attention+'</div></div>'+
+          '<div class="s-card"><div class="s-lbl">Offers extended</div><div class="s-val">'+snap.offers+'</div></div>'+
+          '<div class="s-card"><div class="s-lbl">Screening done</div><div class="s-val">'+sm.screening+'</div></div>'+
+          '<div class="s-card"><div class="s-lbl">Mgr IVs sched.</div><div class="s-val">'+sm.mgrIvs+'</div></div>'+
+          '<div class="s-card"><div class="s-lbl">Offers accepted</div><div class="s-val" style="color:#16a34a;">'+sm.accepted+'</div></div>'+
+        '</div>'+
+        '<div style="margin-bottom:10px;">'+priHtml+'</div>'+
+        '<div style="font-size:11px;font-weight:600;color:#666;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.06em;">Pipeline stages</div>'+
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">'+
+          '<span style="background:#f5f4f0;padding:3px 10px;border-radius:99px;font-size:12px;">Sourcing: '+ps.sourcing+'</span>'+
+          '<span style="background:#eef2ff;color:#4f46e5;padding:3px 10px;border-radius:99px;font-size:12px;">Screening: '+ps.screening+'</span>'+
+          '<span style="background:#fef3c7;color:#b45309;padding:3px 10px;border-radius:99px;font-size:12px;">Mgr IV: '+ps.mgrIv+'</span>'+
+          '<span style="background:#f5f3ff;color:#7c3aed;padding:3px 10px;border-radius:99px;font-size:12px;">Final: '+ps.final+'</span>'+
+          '<span style="background:#f0fdf4;color:#16a34a;padding:3px 10px;border-radius:99px;font-size:12px;">Offer: '+ps.offer+'</span>'+
+          '<span style="background:#fef2f2;color:#dc2626;padding:3px 10px;border-radius:99px;font-size:12px;">On Hold: '+ps.hold+'</span>'+
+        '</div>'+
+        '<div style="font-size:11px;font-weight:600;color:#666;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.06em;">Active roles</div>'+
+        '<table class="records-table" style="margin-bottom:14px;"><thead><tr><th>Role</th><th>Priority</th><th>Stage</th><th>Cands</th><th>Next milestone</th><th>Close</th></tr></thead><tbody>'+roleRows+'</tbody></table>'+
+        (rec.flags&&rec.flags.length?'<div style="font-size:11px;font-weight:600;color:#666;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.06em;">Flags &amp; Blockers</div><div style="margin-bottom:12px;">'+flagHtml+'</div>':'')+
+        (rec.wins?'<div style="font-size:11px;font-weight:600;color:#666;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em;">Today&#39;s Wins</div><div style="font-size:12px;color:#444;margin-bottom:12px;">'+rec.wins+'</div>':'')+
+        (rec.tomorrow&&rec.tomorrow.length?'<div style="font-size:11px;font-weight:600;color:#666;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em;">Plan for Tomorrow</div><div>'+tmrHtml+'</div>':'');
+      wrap.appendChild(div);
+      return;
+    }
     var h='',r='';
     if(rec.type==='b'){h='<tr><th>Department</th><th>Responded</th><th>Diverse</th><th>Score</th><th>Target</th><th>Status</th></tr>';r=rec.rows.map(function(x){return'<tr><td>'+x.dept+'</td><td>'+x.responded+'</td><td>'+x.diverse+'</td><td>'+x.pct+'</td><td>'+x.target+'</td><td>'+x.status+'</td></tr>';}).join('');}
     else if(rec.type==='c'){h='<tr><th>Stage</th><th>Diverse</th><th>Total</th><th>Score</th></tr>';r=rec.rows.map(function(x){return'<tr><td>'+x.stage+'</td><td>'+x.diverse+'</td><td>'+x.total+'</td><td>'+x.pct+'</td></tr>';}).join('');}
@@ -824,7 +998,951 @@ function clearSection(type){
 }
 function clearAllRecords(){if(confirm('Clear all saved records?')){records=[];renderRecords();}}
 function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},3000);}
-function switchTab(id,el){document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active');});document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});document.getElementById(id).classList.add('active');el.classList.add('active');if(id==='records')renderRecords();if(id==='admin')buildAdminPanel();if(id==='calcF')renderFTrend();}
+function switchTab(id,el){document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active');});document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});document.getElementById(id).classList.add('active');el.classList.add('active');if(id==='records'){renderRecords();renderDRRecords();}if(id==='admin')buildAdminPanel();if(id==='calcF')renderFTrend();if(id==='dailyReport')initDailyReport();}
+
+/* ── DAILY REPORT ── */
+var drMember={name:'',role:'',color:'#6c63ff'};
+var drPipelineRows=[];
+var drPipelineRowsB=[];
+var drFlags=[];
+var drInited=false;
+
+var DR_DEPTS=['Corporate Services','Engineering & Technology','Finance & Accounting','Human Resources','Legal & Compliance','Marketing & Communications','Operations','Product','Sales & Business Development','Strategy & Consulting','Talent Acquisition','Other / All Departments'];
+
+function selectDRMember(btn,name,role,color){
+  document.querySelectorAll('.dr-member-btn').forEach(function(b){b.classList.remove('dr-member-active');});
+  btn.classList.add('dr-member-active');
+  btn.style.borderColor=color;btn.style.color=color;btn.style.background=color+'18';
+  drMember={name:name,role:role,color:color};
+  var banner=document.getElementById('dr-active-banner');
+  banner.style.display='flex';
+  document.getElementById('dr-banner-avatar').style.background=color;
+  document.getElementById('dr-banner-avatar').textContent=name[0];
+  document.getElementById('dr-banner-name').textContent=name;
+  var dept=document.getElementById('dr-dept-sel').value;
+  document.getElementById('dr-banner-meta').textContent=(role==='recruiter'?'Recruiter':'Sourcer')+(dept?' · '+dept:'');
+  renderDRForm();
+}
+
+function clearDRMember(){
+  drMember={name:'',role:'',color:'#6c63ff'};
+  document.querySelectorAll('.dr-member-btn').forEach(function(b){b.classList.remove('dr-member-active');b.style.borderColor='';b.style.color='';b.style.background='';});
+  document.getElementById('dr-active-banner').style.display='none';
+  document.getElementById('dr-form-wrap').style.display='none';
+  document.getElementById('dr-form-wrap').innerHTML='';
+  drPipelineRows=[];drPipelineRowsB=[];drFlags=[];
+}
+
+function renderDRForm(){
+  drPipelineRows=[];drPipelineRowsB=[];drFlags=[];
+  var wrap=document.getElementById('dr-form-wrap');
+  var isSourcer=(drMember.role==='sourcer');
+  var c=drMember.color;
+  var dept=document.getElementById('dr-dept-sel').value||'All Departments';
+
+  wrap.innerHTML=
+  // ── SNAPSHOT ──
+  '<div class="card" style="border-top:3px solid '+c+';">'+
+  '<div class="card-title">1 — Overall Snapshot</div>'+
+  '<div class="card-sub">Your department: <strong>'+dept+'</strong></div>'+
+  '<div class="dr-metrics">'+
+    '<div class="dr-metric"><div class="dr-metric-lbl">Total open roles<br>(this dept)</div><div class="dr-metric-val"><input style="background:none;border:none;border-bottom:1.5px dashed '+c+';outline:none;font-size:26px;font-weight:700;color:'+c+';width:60px;text-align:center;font-family:inherit;padding:0;" type="number" min="0" placeholder="—" id="sn-total-roles" oninput="updateDRPreview()"></div><div class="dr-metric-sub">editable</div></div>'+
+    '<div class="dr-metric"><div class="dr-metric-lbl">Candidates in pipeline</div><div class="dr-metric-val"><input style="background:none;border:none;border-bottom:1.5px dashed #ccc;outline:none;font-size:26px;font-weight:700;color:#1a1a18;width:60px;text-align:center;font-family:inherit;padding:0;" type="number" min="0" placeholder="—" id="sn-pipeline" oninput="updateDRPreview()"></div><div class="dr-metric-sub">active today</div></div>'+
+    '<div class="dr-metric"><div class="dr-metric-lbl">Roles needing attention</div><div class="dr-metric-val"><input style="background:none;border:none;border-bottom:1.5px dashed #dc2626;outline:none;font-size:26px;font-weight:700;color:#dc2626;width:60px;text-align:center;font-family:inherit;padding:0;" type="number" min="0" placeholder="—" id="sn-attention" oninput="updateDRPreview()"></div><div class="dr-metric-sub">flagged</div></div>'+
+    '<div class="dr-metric"><div class="dr-metric-lbl">Offers extended</div><div class="dr-metric-val"><input style="background:none;border:none;border-bottom:1.5px dashed #ccc;outline:none;font-size:26px;font-weight:700;color:#1a1a18;width:60px;text-align:center;font-family:inherit;padding:0;" type="number" min="0" placeholder="—" id="sn-offers" oninput="updateDRPreview()"></div><div class="dr-metric-sub">this week</div></div>'+
+  '</div>'+
+  // Priority roles
+  '<div style="margin-top:16px;">'+
+  '<div style="font-size:12px;font-weight:600;color:#1a1a18;margin-bottom:10px;">Priority roles</div>'+
+  '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">'+
+    '<div style="background:#fef2f2;border-radius:8px;padding:14px;text-align:center;">'+
+      '<div style="font-size:10px;font-weight:600;color:#dc2626;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">🔴 High</div>'+
+      '<input type="number" min="0" id="pr-high" oninput="updateDRPreview()" placeholder="0" style="width:64px;font-size:28px;font-weight:700;color:#dc2626;background:none;border:none;border-bottom:2px solid #fca5a5;outline:none;text-align:center;font-family:inherit;">'+
+      '<div style="font-size:10px;color:#dc2626;margin-top:4px;">roles</div></div>'+
+    '<div style="background:#fffbeb;border-radius:8px;padding:14px;text-align:center;">'+
+      '<div style="font-size:10px;font-weight:600;color:#b45309;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">🟡 Mid</div>'+
+      '<input type="number" min="0" id="pr-mid" oninput="updateDRPreview()" placeholder="0" style="width:64px;font-size:28px;font-weight:700;color:#b45309;background:none;border:none;border-bottom:2px solid #fcd34d;outline:none;text-align:center;font-family:inherit;">'+
+      '<div style="font-size:10px;color:#b45309;margin-top:4px;">roles</div></div>'+
+    '<div style="background:#f0fdf4;border-radius:8px;padding:14px;text-align:center;">'+
+      '<div style="font-size:10px;font-weight:600;color:#16a34a;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">🟢 Low</div>'+
+      '<input type="number" min="0" id="pr-low" oninput="updateDRPreview()" placeholder="0" style="width:64px;font-size:28px;font-weight:700;color:#16a34a;background:none;border:none;border-bottom:2px solid #86efac;outline:none;text-align:center;font-family:inherit;">'+
+      '<div style="font-size:10px;color:#16a34a;margin-top:4px;">roles</div></div>'+
+  '</div></div></div>'+
+
+  // ── PIPELINE STATUS ──
+  '<div class="card">'+
+  '<div class="card-title">2 — Open Active Roles Status</div>'+
+  '<div class="card-sub">Type roles below to quick-add — or add individually using the button.</div>'+
+
+  // Quick-add textarea
+  '<div style="background:#f5f4f0;border-radius:10px;padding:14px;margin-bottom:14px;">'+
+    '<div style="font-size:12px;font-weight:600;color:#1a1a18;margin-bottom:8px;">Quick add roles</div>'+
+    '<div style="font-size:11px;color:#666;margin-bottom:10px;">One role per line. Optionally add priority and candidates separated by commas:<br><span style="font-family:monospace;background:#fff;padding:2px 6px;border-radius:4px;font-size:11px;">Senior Engineer, High, 5</span> &nbsp;or just&nbsp; <span style="font-family:monospace;background:#fff;padding:2px 6px;border-radius:4px;font-size:11px;">Product Manager</span></div>'+
+    '<div style="display:flex;gap:8px;align-items:flex-start;">'+
+      '<textarea id="dr-quick-add" placeholder="Senior Engineer, High, 3&#10;Product Manager, Mid, 2&#10;Data Analyst" style="flex:1;padding:9px 12px;border:1px solid #e4e2da;border-radius:8px;font-size:13px;font-family:inherit;min-height:90px;resize:vertical;outline:none;line-height:1.6;background:#fff;color:#1a1a18;"></textarea>'+
+      '<button onclick="quickAddRoles()" style="padding:9px 16px;background:#6c63ff;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;font-weight:500;white-space:nowrap;">Add roles</button>'+
+    '</div>'+
+  '</div>'+
+
+  // Table
+  '<div style="overflow-x:auto;">'+
+  '<table class="dr-pipeline-table"><thead><tr>'+
+    '<th>Role</th><th>Priority</th><th>Pipeline Stage</th><th style="text-align:center;">Candidates</th><th>Next milestone</th><th>Target close</th><th>Notes / blockers</th><th></th></tr></thead>'+
+  '<tbody id="dr-pipeline-body"></tbody></table></div>'+
+  '<button class="dr-add-row-btn" onclick="addPipelineRow()">+ Add role</button>'+
+
+  // Sub-metrics
+  '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid #e4e2da;">'+
+    '<div class="s-card"><div class="s-lbl">Screening (today)</div><div class="s-val"><input style="background:none;border:none;border-bottom:1px dashed #ccc;outline:none;font-size:22px;font-weight:600;color:#1a1a18;width:60px;text-align:center;font-family:inherit;" type="number" min="0" placeholder="0" id="sub-screening" oninput="updateDRPreview()"></div></div>'+
+    '<div class="s-card"><div class="s-lbl">Interviews — mgr scheduled</div><div class="s-val"><input style="background:none;border:none;border-bottom:1px dashed #ccc;outline:none;font-size:22px;font-weight:600;color:#1a1a18;width:60px;text-align:center;font-family:inherit;" type="number" min="0" placeholder="0" id="sub-mgr-ivs" oninput="updateDRPreview()"></div></div>'+
+    '<div class="s-card"><div class="s-lbl">Offers accepted</div><div class="s-val"><input style="background:none;border:none;border-bottom:1px dashed #ccc;outline:none;font-size:22px;font-weight:600;color:#16a34a;width:60px;text-align:center;font-family:inherit;" type="number" min="0" placeholder="0" id="sub-accepted" oninput="updateDRPreview()"></div></div>'+
+  '</div></div>'+
+
+  // ── PIPELINE STATUS 2B ──
+  '<div class="card">'+
+  '<div class="card-title">2b — Pipeline Roles Status</div>'+
+  '<div class="card-sub">Track your pipeline roles progress separately. Same columns as above — independent data.</div>'+
+
+  // Quick-add for 2b
+  '<div style="background:#f5f4f0;border-radius:10px;padding:14px;margin-bottom:14px;">'+
+    '<div style="font-size:12px;font-weight:600;color:#1a1a18;margin-bottom:8px;">Quick add roles</div>'+
+    '<div style="font-size:11px;color:#666;margin-bottom:10px;">One role per line with optional priority and candidates: <span style="font-family:monospace;background:#fff;padding:2px 6px;border-radius:4px;">Senior Engineer, High, 5</span></div>'+
+    '<div style="display:flex;gap:8px;align-items:flex-start;">'+
+      '<textarea id="dr-quick-add-b" placeholder="Role name, priority, candidates" style="flex:1;padding:9px 12px;border:1px solid #e4e2da;border-radius:8px;font-size:13px;font-family:inherit;min-height:70px;resize:vertical;outline:none;line-height:1.6;background:#fff;color:#1a1a18;"></textarea>'+
+      '<button onclick="quickAddRolesB()" style="padding:9px 16px;background:#6c63ff;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;font-weight:500;white-space:nowrap;">Add roles</button>'+
+    '</div>'+
+  '</div>'+
+
+  '<div style="overflow-x:auto;">'+
+  '<table class="dr-pipeline-table"><thead><tr>'+
+    '<th>Role</th><th>Priority</th><th>Pipeline Stage</th><th style="text-align:center;">Candidates</th><th>Next milestone</th><th>Target close</th><th>Notes / blockers</th><th></th></tr></thead>'+
+  '<tbody id="dr-pipeline-body-b"></tbody></table></div>'+
+  '<button class="dr-add-row-btn" onclick="addPipelineRowB()">+ Add role</button>'+
+  '</div>'+
+
+  // ── FLAGS & BLOCKERS ──
+  '<div class="card">'+
+  '<div class="card-title">3 — Flags &amp; Blockers</div>'+
+  '<div class="card-sub">Items that need a decision or action from leadership before you can move forward.</div>'+
+  '<div class="flag-section" id="dr-flags-list"></div>'+
+  '<button class="dr-add-row-btn" onclick="addFlag()" style="margin-top:10px;">+ Add flag / blocker</button></div>'+
+
+  // ── WINS ──
+  '<div class="card">'+
+  '<div class="card-title">4 — Today&#39;s Wins</div>'+
+  '<div class="card-sub">Progress and positive moments to highlight to the CEO.</div>'+
+  '<textarea class="wins-textarea" id="dr-wins" placeholder="e.g. Offer accepted for Senior Engineer · Final round completed for Head of Product · 5 new strong profiles sourced for CTO role..." oninput="updateDRPreview()"></textarea></div>'+
+
+  // ── TOMORROW ──
+  '<div class="card">'+
+  '<div class="card-title">5 — Plan for Tomorrow</div>'+
+  '<div class="card-sub">Your top priorities for the next working day.</div>'+
+  '<div class="tomorrow-items">'+
+    '<div class="tomorrow-row"><span class="priority-badge" style="background:#fef2f2;color:#dc2626;">Priority 1</span><input class="tomorrow-input" type="text" placeholder="Most critical action for tomorrow" id="tmr-1" oninput="updateDRPreview()"></div>'+
+    '<div class="tomorrow-row"><span class="priority-badge" style="background:#fffbeb;color:#b45309;">Priority 2</span><input class="tomorrow-input" type="text" placeholder="" id="tmr-2" oninput="updateDRPreview()"></div>'+
+    '<div class="tomorrow-row"><span class="priority-badge" style="background:#f0fdf4;color:#16a34a;">Priority 3</span><input class="tomorrow-input" type="text" placeholder="" id="tmr-3" oninput="updateDRPreview()"></div>'+
+    '<div class="tomorrow-row"><span class="priority-badge">Priority 4</span><input class="tomorrow-input" type="text" placeholder="" id="tmr-4" oninput="updateDRPreview()"></div>'+
+  '</div></div>'+
+
+  // ── PREVIEW ──
+  '<div class="card">'+
+  '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">'+
+    '<div><div class="card-title">CEO Report Preview</div><div class="card-sub" style="margin:0;">Visual summary — screenshot to share.</div></div>'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;">'+
+      '<button class="dr-copy-btn" onclick="screenshotReport()" style="background:#1a1a18;color:#fff;">&#128247; Screenshot</button>'+
+      '<button class="dr-copy-btn" onclick="copyDRReport()">Copy text</button>'+
+      '<button class="btn btn-green" onclick="exportDRExcel()">Excel</button>'+
+      '<button class="btn btn-primary" onclick="saveDRRecord()">Save</button>'+
+    '</div></div>'+
+  '<div id="dr-preview" style="font-family:inherit;"><div style="font-size:13px;color:#aaa;padding:20px;text-align:center;">Fill in the sections above to generate your CEO report preview...</div></div>'+
+  '</div>';
+
+  wrap.style.display='block';
+  
+  addFlag('red');addFlag('amber');
+
+  // Wire upload zone events after DOM is ready
+  setTimeout(function(){
+    var zone=document.getElementById('dr-upload-zone');
+    var fileInput=document.getElementById('dr-file-input');
+    if(zone&&fileInput){
+      zone.addEventListener('click',function(){fileInput.click();});
+      zone.addEventListener('dragover',function(e){e.preventDefault();zone.style.background='#f5f4ff';});
+      zone.addEventListener('dragleave',function(){zone.style.background='';});
+      zone.addEventListener('drop',function(e){e.preventDefault();zone.style.background='';var f=e.dataTransfer.files[0];if(f)handleDRFileUpload(f);});
+      fileInput.addEventListener('change',function(){if(this.files[0])handleDRFileUpload(this.files[0]);});
+    }
+  },50);
+
+  updateDRPreview();
+}
+
+function addPipelineRow(){
+  var idx=drPipelineRows.length;
+  drPipelineRows.push(idx);
+  var tbody=document.getElementById('dr-pipeline-body');
+  if(!tbody)return;
+  var tr=document.createElement('tr');
+  tr.id='dr-pr-'+idx;
+  tr.innerHTML=
+    '<td><input class="dr-td-input" type="text" placeholder="Role title" id="pr-role-'+idx+'" oninput="updateDRPreview()"></td>'+
+    '<td><select class="dr-stage-select" id="pr-pri-'+idx+'" onchange="updateDRPreview()">'+
+      '<option value="1">🔴 1 – High</option>'+
+      '<option value="2" selected>🟡 2 – Mid</option>'+
+      '<option value="3">🟢 3 – Low</option>'+
+    '</select></td>'+
+    '<td><select class="dr-stage-select" id="pr-stage-'+idx+'" onchange="updateDRPreview()">'+
+      '<option>Sourcing</option>'+
+      '<option>Screening</option>'+
+      '<option>Interview Scheduled</option>'+
+      '<option>Mgr Interview</option>'+
+      '<option>Final Round</option>'+
+      '<option>Offer Stage</option>'+
+      '<option>Offer Accepted</option>'+
+      '<option>On Hold</option>'+
+    '</select></td>'+
+    '<td style="text-align:center;"><input class="dr-td-input" type="number" min="0" placeholder="0" id="pr-cands-'+idx+'" style="width:44px;text-align:center;" oninput="updateDRPreview()"></td>'+
+    '<td><input class="dr-td-input" type="text" placeholder="e.g. Final interview Fri" id="pr-milestone-'+idx+'" oninput="updateDRPreview()"></td>'+
+    '<td><input class="dr-td-input" type="date" id="pr-close-'+idx+'" oninput="updateDRPreview()"></td>'+
+    '<td><input class="dr-td-input" type="text" placeholder="Blockers, notes..." id="pr-notes-'+idx+'" oninput="updateDRPreview()"></td>'+
+    '<td><button class="dr-remove-row" onclick="removePipelineRow('+idx+')">✕</button></td>';
+  tbody.appendChild(tr);
+}
+
+function removePipelineRow(idx){
+  var row=document.getElementById('dr-pr-'+idx);
+  if(row)row.remove();
+  drPipelineRows=drPipelineRows.filter(function(i){return i!==idx;});
+  updateDRPreview();
+}
+
+function addFlag(type){
+  var idx=drFlags.length;
+  drFlags.push(idx);
+  type=type||'amber';
+  var list=document.getElementById('dr-flags-list');
+  if(!list)return;
+  var div=document.createElement('div');
+  div.id='dr-flag-'+idx;
+  div.className='flag-item';
+  div.innerHTML='<div class="flag-dot flag-dot-'+type+'" id="flag-dot-'+idx+'"></div>'+
+    '<select class="flag-type-select" id="flag-type-'+idx+'" onchange="updateFlagDot('+idx+');updateDRPreview()">'+
+      '<option value="red"'+(type==='red'?' selected':'')+'>🔴 Blocker</option>'+
+      '<option value="amber"'+(type==='amber'?' selected':'')+'>🟡 Risk</option>'+
+    '</select>'+
+    '<input class="flag-text-input" type="text" placeholder="Describe the issue and what action is needed from CEO..." id="flag-text-'+idx+'" oninput="updateDRPreview()">'+
+    '<button class="dr-remove-row" onclick="removeFlag('+idx+')">✕</button>';
+  list.appendChild(div);
+}
+
+function updateFlagDot(idx){
+  var sel=document.getElementById('flag-type-'+idx);
+  var dot=document.getElementById('flag-dot-'+idx);
+  if(sel&&dot){dot.className='flag-dot flag-dot-'+sel.value;}
+}
+
+function removeFlag(idx){
+  var el=document.getElementById('dr-flag-'+idx);
+  if(el)el.remove();
+  drFlags=drFlags.filter(function(i){return i!==idx;});
+  updateDRPreview();
+}
+
+function gv(id){var el=document.getElementById(id);return el?el.value.trim():'';}
+
+function updateDRPreview(){
+  if(drMember.name){
+    var dept=document.getElementById('dr-dept-sel').value;
+    var metaEl=document.getElementById('dr-banner-meta');
+    if(metaEl)metaEl.textContent=(drMember.role==='recruiter'?'Recruiter':'Sourcer')+(dept?' · '+dept:'');
+  }
+  var previewEl=document.getElementById('dr-preview');
+  if(!previewEl)return;
+
+  var date=gv('dr-date')||'—';
+  var week=gv('dr-week')||'—';
+  var member=drMember.name||'—';
+  var memberRole=drMember.role==='sourcer'?'Sourcer':'Recruiter';
+  var dept=gv('dr-dept-sel')||'All Departments';
+  var col=drMember.color||'#6c63ff';
+
+  // Colour helpers
+  var priColors={
+    '1':{bg:'#fef2f2',tc:'#dc2626',label:'High',dot:'&#128308;'},
+    '2':{bg:'#fffbeb',tc:'#b45309',label:'Mid',dot:'&#128993;'},
+    '3':{bg:'#f0fdf4',tc:'#16a34a',label:'Low',dot:'&#128994;'}
+  };
+  var stageColors={
+    'Sourcing':{bg:'#f1f5f9',tc:'#475569'},
+    'Screening':{bg:'#eef2ff',tc:'#4f46e5'},
+    'Interview Scheduled':{bg:'#fef9c3',tc:'#854d0e'},
+    'Mgr Interview':{bg:'#fef3c7',tc:'#b45309'},
+    'Final Round':{bg:'#f5f3ff',tc:'#7c3aed'},
+    'Offer Stage':{bg:'#f0fdf4',tc:'#16a34a'},
+    'Offer Accepted':{bg:'#dcfce7',tc:'#15803d'},
+    'On Hold':{bg:'#fef2f2',tc:'#dc2626'}
+  };
+  function priPill(v){var p=priColors[v]||priColors['2'];return'<span style="background:'+p.bg+';color:'+p.tc+';padding:2px 9px;border-radius:99px;font-size:11px;font-weight:700;letter-spacing:0.02em;">'+p.dot+' '+p.label+'</span>';}
+  function stagePill(s){var p=stageColors[s]||{bg:'#f5f4f0',tc:'#888'};return'<span style="background:'+p.bg+';color:'+p.tc+';padding:2px 10px;border-radius:99px;font-size:11px;font-weight:600;white-space:nowrap;">'+escHtml(s)+'</span>';}
+
+  // Collect role data
+  var rowsA=[];
+  drPipelineRows.forEach(function(i){
+    var rowEl=document.getElementById('dr-pr-'+i);if(!rowEl)return;
+    var r=gv('pr-role-'+i);if(!r)return;
+    rowsA.push({role:r,pri:gv('pr-pri-'+i)||'2',stage:gv('pr-stage-'+i)||'Sourcing',cands:gv('pr-cands-'+i)||'0',milestone:gv('pr-milestone-'+i),close:gv('pr-close-'+i),notes:gv('pr-notes-'+i)});
+  });
+  var rowsB=[];
+  drPipelineRowsB.forEach(function(i){
+    var rowEl=document.getElementById('dr-pr-b-'+i);if(!rowEl)return;
+    var r=gv('pr-b-role-'+i);if(!r)return;
+    rowsB.push({role:r,pri:gv('pr-b-pri-'+i)||'2',stage:gv('pr-b-stage-'+i)||'Sourcing',cands:gv('pr-b-cands-'+i)||'0',milestone:gv('pr-b-milestone-'+i),close:gv('pr-b-close-'+i),notes:gv('pr-b-notes-'+i)});
+  });
+  var flagItems=[];
+  drFlags.forEach(function(i){
+    var el=document.getElementById('flag-text-'+i);
+    var typeEl=document.getElementById('flag-type-'+i);
+    if(!el||!el.value.trim())return;
+    flagItems.push({type:typeEl?typeEl.value:'amber',text:el.value.trim()});
+  });
+  var tmrVals=['1','2','3','4'].map(function(n){return gv('tmr-'+n);}).filter(Boolean);
+  var wins=gv('dr-wins');
+
+  function rolesTable(rows){
+    if(!rows.length)return'<div style="font-size:12px;color:#94a3b8;padding:10px 0;text-align:center;">No roles added.</div>';
+    var h='<table style="width:100%;border-collapse:collapse;font-size:12px;">';
+    h+='<thead><tr style="border-bottom:1.5px solid #e2e8f0;">';
+    ['Role','Priority','Stage','Cands','Next milestone','Close','Notes'].forEach(function(t,i){
+      h+='<th style="text-align:'+(i===3?'center':'left')+';padding:6px 8px;font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:#94a3b8;">'+t+'</th>';
+    });
+    h+='</tr></thead><tbody>';
+    rows.forEach(function(r,i){
+      h+='<tr style="border-bottom:0.5px solid '+(i===rows.length-1?'transparent':'#f1f5f9')+'">';
+      h+='<td style="padding:8px;font-weight:600;color:#0f172a;font-size:12px;">'+escHtml(r.role)+'</td>';
+      h+='<td style="padding:8px;">'+priPill(r.pri)+'</td>';
+      h+='<td style="padding:8px;">'+stagePill(r.stage)+'</td>';
+      h+='<td style="padding:8px;text-align:center;font-size:16px;font-weight:800;color:#0f172a;">'+escHtml(r.cands||'0')+'</td>';
+      h+='<td style="padding:8px;font-size:11px;color:#64748b;">'+escHtml(r.milestone||'—')+'</td>';
+      h+='<td style="padding:8px;font-size:11px;color:#64748b;white-space:nowrap;">'+escHtml(r.close||'—')+'</td>';
+      h+='<td style="padding:8px;font-size:11px;color:#94a3b8;">'+escHtml(r.notes||'')+'</td>';
+      h+='</tr>';
+    });
+    h+='</tbody></table>';
+    return h;
+  }
+
+  // ── BUILD CARD ──
+  var h='';
+  h+='<div id="dr-report-card" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',sans-serif;max-width:900px;">';
+
+  // ── TOP HEADER BAND ──
+  h+='<div style="background:'+col+';padding:20px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">';
+  h+='<div>';
+  h+='<div style="font-size:11px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:rgba(255,255,255,0.65);margin-bottom:4px;">ManifestGlobal · Talent Acquisition</div>';
+  h+='<div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-0.02em;">Daily Recruiting Report</div>';
+  h+='</div>';
+  h+='<div style="text-align:right;">';
+  h+='<div style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);border-radius:99px;padding:6px 14px;">';
+  h+='<div style="width:28px;height:28px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:'+col+';">'+member[0]+'</div>';
+  h+='<div><div style="font-size:13px;font-weight:700;color:#fff;">'+escHtml(member)+'</div>';
+  h+='<div style="font-size:10px;color:rgba(255,255,255,0.7);">'+memberRole+' · '+escHtml(dept)+'</div></div></div>';
+  h+='<div style="font-size:11px;color:rgba(255,255,255,0.65);margin-top:6px;">'+date+' &nbsp;·&nbsp; Week '+escHtml(week)+'</div>';
+  h+='</div></div>';
+
+  // ── SNAPSHOT ROW ──
+  var snapItems=[
+    {label:'Open Roles',val:gv('sn-total-roles')||'—',sub:'this dept',accent:col},
+    {label:'In Pipeline',val:gv('sn-pipeline')||'—',sub:'candidates',accent:'#0891b2'},
+    {label:'Needs Attention',val:gv('sn-attention')||'—',sub:'flagged',accent:'#dc2626'},
+    {label:'Offers Out',val:gv('sn-offers')||'—',sub:'this week',accent:'#16a34a'},
+    {label:'Screening',val:gv('sub-screening')||'—',sub:'done today',accent:'#7c3aed'},
+    {label:'Mgr IVs',val:gv('sub-mgr-ivs')||'—',sub:'scheduled',accent:'#b45309'},
+    {label:'Accepted',val:gv('sub-accepted')||'—',sub:'offers',accent:'#0d9488'}
+  ];
+  h+='<div style="display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid #f1f5f9;">';
+  snapItems.forEach(function(s,i){
+    h+='<div style="padding:16px 12px;text-align:center;'+(i<snapItems.length-1?'border-right:1px solid #f1f5f9;':'')+'">';
+    h+='<div style="font-size:28px;font-weight:800;color:'+s.accent+';line-height:1;">'+s.val+'</div>';
+    h+='<div style="font-size:11px;font-weight:600;color:#334155;margin-top:3px;">'+s.label+'</div>';
+    h+='<div style="font-size:10px;color:#94a3b8;">'+s.sub+'</div>';
+    h+='</div>';
+  });
+  h+='</div>';
+
+  // ── PRIORITY BAND ──
+  var priH=gv('pr-high')||'0', priM=gv('pr-mid')||'0', priL=gv('pr-low')||'0';
+  h+='<div style="background:#f8fafc;padding:12px 28px;display:flex;align-items:center;gap:16px;border-bottom:1px solid #f1f5f9;flex-wrap:wrap;">';
+  h+='<span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#94a3b8;">Priority</span>';
+  h+='<div style="display:flex;gap:10px;flex-wrap:wrap;">';
+  [{v:'1',n:priH},{v:'2',n:priM},{v:'3',n:priL}].forEach(function(p){
+    var pc=priColors[p.v];
+    h+='<div style="display:flex;align-items:center;gap:6px;background:'+pc.bg+';border-radius:99px;padding:5px 14px;">';
+    h+='<span style="font-size:18px;font-weight:800;color:'+pc.tc+';">'+p.n+'</span>';
+    h+='<span style="font-size:11px;color:'+pc.tc+';font-weight:600;">'+pc.label+' priority roles</span>';
+    h+='</div>';
+  });
+  h+='</div></div>';
+
+  // ── BODY: TWO COLUMNS ──
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">';
+
+  // Left col: 2a roles
+  h+='<div style="padding:20px 24px;border-right:1px solid #f1f5f9;">';
+  h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">';
+  h+='<div style="width:4px;height:18px;border-radius:2px;background:'+col+';"></div>';
+  h+='<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#334155;">Open Active Roles</div>';
+  h+='<div style="margin-left:auto;background:'+col+'18;color:'+col+';border-radius:99px;padding:2px 10px;font-size:11px;font-weight:700;">'+rowsA.length+' roles</div>';
+  h+='</div>';
+  h+=rolesTable(rowsA);
+  h+='</div>';
+
+  // Right col: 2b roles
+  h+='<div style="padding:20px 24px;">';
+  h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">';
+  h+='<div style="width:4px;height:18px;border-radius:2px;background:#0891b2;"></div>';
+  h+='<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#334155;">Pipeline Status</div>';
+  h+='<div style="margin-left:auto;background:#0891b218;color:#0891b2;border-radius:99px;padding:2px 10px;font-size:11px;font-weight:700;">'+rowsB.length+' roles</div>';
+  h+='</div>';
+  h+=rolesTable(rowsB);
+  h+='</div>';
+
+  h+='</div>'; // end 2-col grid
+
+  // ── SECTIONS 3, 4, 5 — always shown ──
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-top:2px solid #f1f5f9;">';
+
+  // Section 3 — Flags & Blockers
+  h+='<div style="padding:18px 20px;border-right:1px solid #f1f5f9;">';
+  h+='<div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;">';
+  h+='<div style="width:3px;height:16px;border-radius:2px;background:#dc2626;"></div>';
+  h+='<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:#dc2626;">3 — Flags & Blockers</div>';
+  h+='</div>';
+  if(flagItems.length){
+    h+='<div style="display:flex;flex-direction:column;gap:5px;">';
+    flagItems.forEach(function(f){
+      var isR=f.type==='red';
+      h+='<div style="display:flex;align-items:flex-start;gap:8px;padding:7px 10px;border-radius:7px;background:'+(isR?'#fef2f2':'#fffbeb')+';border-left:3px solid '+(isR?'#dc2626':'#f59e0b')+';">';
+      h+='<span style="font-size:10px;font-weight:800;color:'+(isR?'#dc2626':'#b45309')+';white-space:nowrap;margin-top:1px;text-transform:uppercase;">'+(isR?'Blocker':'Risk')+'</span>';
+      h+='<span style="font-size:11px;color:#374151;line-height:1.5;">'+escHtml(f.text)+'</span>';
+      h+='</div>';
+    });
+    h+='</div>';
+  } else {
+    h+='<div style="font-size:12px;color:#94a3b8;font-style:italic;padding:6px 0;">None today.</div>';
+  }
+  h+='</div>';
+
+  // Section 4 — Today's Wins
+  h+='<div style="padding:18px 20px;border-right:1px solid #f1f5f9;">';
+  h+='<div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;">';
+  h+='<div style="width:3px;height:16px;border-radius:2px;background:#16a34a;"></div>';
+  h+='<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:#16a34a;">4 — Today&#39;s Wins</div>';
+  h+='</div>';
+  if(wins){
+    h+='<div style="font-size:12px;color:#374151;line-height:1.7;background:#f0fdf4;border-radius:7px;padding:9px 12px;">'+escHtml(wins)+'</div>';
+  } else {
+    h+='<div style="font-size:12px;color:#94a3b8;font-style:italic;padding:6px 0;">None recorded.</div>';
+  }
+  h+='</div>';
+
+  // Section 5 — Plan for Tomorrow
+  h+='<div style="padding:18px 20px;">';
+  h+='<div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;">';
+  h+='<div style="width:3px;height:16px;border-radius:2px;background:#7c3aed;"></div>';
+  h+='<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:#7c3aed;">5 — Plan for Tomorrow</div>';
+  h+='</div>';
+  if(tmrVals.length){
+    h+='<div style="display:flex;flex-direction:column;gap:5px;">';
+    var tmrBg=['#fef2f2','#fffbeb','#f0fdf4','#eef2ff'];
+    var tmrTc=['#dc2626','#b45309','#16a34a','#4f46e5'];
+    tmrVals.forEach(function(val,i){
+      h+='<div style="display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:0.5px solid #f1f5f9;">';
+      h+='<span style="background:'+tmrBg[i]+';color:'+tmrTc[i]+';padding:1px 8px;border-radius:99px;font-size:10px;font-weight:800;flex-shrink:0;margin-top:2px;">P'+(i+1)+'</span>';
+      h+='<span style="font-size:12px;color:#374151;line-height:1.5;">'+escHtml(val)+'</span>';
+      h+='</div>';
+    });
+    h+='</div>';
+  } else {
+    h+='<div style="font-size:12px;color:#94a3b8;font-style:italic;padding:6px 0;">Not yet planned.</div>';
+  }
+  h+='</div>';
+
+  h+='</div>'; // end 3-col section row
+
+  // ── FOOTER ──
+  h+='<div style="background:#f8fafc;padding:10px 28px;display:flex;align-items:center;justify-content:space-between;border-top:2px solid #f1f5f9;">';
+  h+='<span style="font-size:10px;color:#94a3b8;letter-spacing:0.05em;">ManifestGlobal Talent Acquisition · Confidential</span>';
+  h+='<span style="font-size:10px;color:#94a3b8;">'+escHtml(member)+' ('+memberRole+') · '+date+'</span>';
+  h+='</div>';
+
+  h+='</div>'; // end card
+
+  previewEl.innerHTML=h;
+  renderPipelineSummary();
+}
+
+function screenshotReport(){
+  var card=document.getElementById('dr-report-card');
+  if(!card){showToast('Generate the report first.');return;}
+  // Open print dialog focused on the card
+  var w=window.open('','_blank','width=1000,height=800');
+  if(!w){showToast('Allow popups to use screenshot.');return;}
+  var styles='body{margin:0;padding:20px;background:#f5f4f0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}';
+  w.document.write('<!DOCTYPE html><html><head><title>Daily Report</title><style>'+styles+'</style></head><body>'+card.outerHTML+'</body></html>');
+  w.document.close();
+  setTimeout(function(){w.focus();w.print();},400);
+}
+
+function copyDRReport(){
+  var el=document.getElementById('dr-preview');
+  if(!el)return;
+  // Get plain text version
+  var text=el.innerText||el.textContent;
+  navigator.clipboard.writeText(text).then(function(){showToast('Report copied to clipboard!');}).catch(function(){showToast('Copy failed — please select and copy manually.');});
+}
+
+function saveDRRecord(){
+  var date=gv('dr-date')||'No date';
+  var previewEl=document.getElementById('dr-preview');
+  if(!previewEl||!drMember.name){showToast('Please select your name first.');return;}
+  var dept=gv('dr-dept-sel')||'—';
+  var week=gv('dr-week')||'—';
+
+  // Build row data for the records table display
+  var pipelineRows=[];
+  drPipelineRows.forEach(function(idx){
+    var rowEl=document.getElementById('dr-pr-'+idx);
+    if(!rowEl)return;
+    var role=gv('pr-role-'+idx);
+    if(!role)return;
+    pipelineRows.push({
+      role:role,
+      pri:gv('pr-pri-'+idx)||'2',
+      stage:gv('pr-stage-'+idx)||'—',
+      cands:gv('pr-cands-'+idx)||'0',
+      milestone:gv('pr-milestone-'+idx)||'—',
+      close:gv('pr-close-'+idx)||'—',
+      notes:gv('pr-notes-'+idx)||''
+    });
+  });
+
+  var flagRows=[];
+  drFlags.forEach(function(idx){
+    var el=document.getElementById('flag-text-'+idx);
+    var typeEl=document.getElementById('flag-type-'+idx);
+    if(el&&el.value.trim())flagRows.push({type:typeEl?typeEl.value:'amber',text:el.value.trim()});
+  });
+
+  var rec={
+    type:'dr',
+    typeLabel:'Daily Report',
+    savedBy:drMember.name,
+    period:date,
+    full:date+' · '+dept+' · Week '+week,
+    savedAt:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),
+    dept:dept,
+    week:week,
+    snap:{
+      totalRoles:gv('sn-total-roles')||'—',
+      pipeline:gv('sn-pipeline')||'—',
+      attention:gv('sn-attention')||'—',
+      offers:gv('sn-offers')||'—',
+      priHigh:gv('pr-high')||'0',
+      priMid:gv('pr-mid')||'0',
+      priLow:gv('pr-low')||'0'
+    },
+    pipelineStatus:{
+      sourcing:'0',screening:'0',mgrIv:'0',final:'0',offer:'0',hold:'0'
+    },
+    subMetrics:{
+      screening:gv('sub-screening')||'0',
+      mgrIvs:gv('sub-mgr-ivs')||'0',
+      accepted:gv('sub-accepted')||'0'
+    },
+    pipelineRows:pipelineRows,
+    flags:flagRows,
+    wins:gv('dr-wins')||'',
+    tomorrow:[gv('tmr-1'),gv('tmr-2'),gv('tmr-3'),gv('tmr-4')].filter(Boolean)
+  };
+
+  records.push(rec);
+  renderDRRecords();
+  showToast('Report saved — '+date+' by '+drMember.name);
+}
+
+function renderDRRecords(){
+  var wrap=document.getElementById('dr-records-wrap');
+  if(!wrap)return;
+  var drRecs=records.filter(function(r){return r.type==='dr';});
+  if(!drRecs.length){wrap.innerHTML='<div class="empty-state">No daily reports saved yet.</div>';return;}
+  wrap.innerHTML='';
+  drRecs.slice().reverse().forEach(function(rec){
+    var col=MEMBER_COLORS[rec.savedBy]||'#888';
+    var snap=rec.snap||{};
+    var ps=rec.pipelineStatus||{};
+    var sm=rec.subMetrics||{};
+    var div=document.createElement('div');
+    div.style.cssText='border:1px solid #e4e2da;border-radius:10px;padding:16px;margin-bottom:12px;';
+
+    var roleRows=(rec.pipelineRows&&rec.pipelineRows.length)?rec.pipelineRows.map(function(p){
+      var priLabel=p.pri==='1'?'<span style="background:#fef2f2;color:#dc2626;padding:1px 7px;border-radius:99px;font-size:10px;font-weight:600;">P1</span>':
+                   p.pri==='3'?'<span style="background:#f0fdf4;color:#16a34a;padding:1px 7px;border-radius:99px;font-size:10px;font-weight:600;">P3</span>':
+                   '<span style="background:#fffbeb;color:#b45309;padding:1px 7px;border-radius:99px;font-size:10px;font-weight:600;">P2</span>';
+      return'<tr><td>'+p.role+'</td><td>'+priLabel+'</td><td>'+p.stage+'</td><td style="text-align:center;">'+p.cands+'</td><td>'+p.milestone+'</td><td>'+p.close+'</td>'+(p.notes?'<td style="color:#888;font-size:11px;">'+p.notes+'</td>':'<td></td>')+'</tr>';
+    }).join(''):'<tr><td colspan="7" style="color:#aaa;text-align:center;font-size:12px;">No roles entered</td></tr>';
+
+    var flagHtml=(rec.flags&&rec.flags.length)?rec.flags.map(function(f){
+      return'<div style="display:flex;align-items:flex-start;gap:6px;padding:5px 0;border-bottom:0.5px solid #f0efeb;">'+
+        (f.type==='red'?'<span style="background:#fef2f2;color:#dc2626;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;flex-shrink:0;">🔴 Blocker</span>':'<span style="background:#fffbeb;color:#b45309;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;flex-shrink:0;">🟡 Risk</span>')+
+        '<span style="font-size:12px;color:#444;">'+f.text+'</span></div>';
+    }).join(''):'';
+
+    var tmrHtml=(rec.tomorrow&&rec.tomorrow.length)?rec.tomorrow.map(function(t,i){
+      return'<div style="font-size:12px;padding:3px 0;border-bottom:0.5px solid #f0efeb;"><span style="font-size:10px;font-weight:600;color:#6c63ff;margin-right:6px;">P'+(i+1)+'</span>'+t+'</div>';
+    }).join(''):'';
+
+    div.innerHTML=
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">'+
+        '<div style="display:flex;align-items:center;gap:10px;">'+
+          '<div style="width:30px;height:30px;border-radius:50%;background:'+col+';display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;">'+rec.savedBy[0]+'</div>'+
+          '<div><div style="font-size:13px;font-weight:600;color:#1a1a18;">'+rec.savedBy+'</div>'+
+          '<div style="font-size:11px;color:#888;">'+rec.dept+' · '+rec.period+' · Week '+rec.week+'</div></div>'+
+        '</div>'+
+        '<span style="font-size:11px;color:#aaa;background:#f5f4f0;padding:3px 10px;border-radius:99px;">Saved '+rec.savedAt+'</span>'+
+      '</div>'+
+
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px;margin-bottom:14px;">'+
+        '<div class="s-card"><div class="s-lbl">Open roles</div><div class="s-val" style="color:#6c63ff;">'+snap.totalRoles+'</div></div>'+
+        '<div class="s-card"><div class="s-lbl">In pipeline</div><div class="s-val">'+snap.pipeline+'</div></div>'+
+        '<div class="s-card"><div class="s-lbl">Attention</div><div class="s-val" style="color:#dc2626;">'+snap.attention+'</div></div>'+
+        '<div class="s-card"><div class="s-lbl">Offers out</div><div class="s-val">'+snap.offers+'</div></div>'+
+        '<div class="s-card"><div class="s-lbl">Screening</div><div class="s-val">'+sm.screening+'</div></div>'+
+        '<div class="s-card"><div class="s-lbl">Mgr IVs</div><div class="s-val">'+sm.mgrIvs+'</div></div>'+
+        '<div class="s-card"><div class="s-lbl">Accepted</div><div class="s-val" style="color:#16a34a;">'+sm.accepted+'</div></div>'+
+      '</div>'+
+
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">'+
+        '<span style="background:#fef2f2;color:#dc2626;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:600;">🔴 High: '+snap.priHigh+'</span>'+
+        '<span style="background:#fffbeb;color:#b45309;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:600;">🟡 Mid: '+snap.priMid+'</span>'+
+        '<span style="background:#f0fdf4;color:#16a34a;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:600;">🟢 Low: '+snap.priLow+'</span>'+
+        '<span style="background:#f5f4f0;padding:3px 10px;border-radius:99px;font-size:11px;color:#444;">Sourcing: '+ps.sourcing+'</span>'+
+        '<span style="background:#eef2ff;color:#4f46e5;padding:3px 10px;border-radius:99px;font-size:11px;">Screening: '+ps.screening+'</span>'+
+        '<span style="background:#fef3c7;color:#b45309;padding:3px 10px;border-radius:99px;font-size:11px;">Mgr IV: '+ps.mgrIv+'</span>'+
+        '<span style="background:#f5f3ff;color:#7c3aed;padding:3px 10px;border-radius:99px;font-size:11px;">Final: '+ps.final+'</span>'+
+        '<span style="background:#f0fdf4;color:#16a34a;padding:3px 10px;border-radius:99px;font-size:11px;">Offer: '+ps.offer+'</span>'+
+        '<span style="background:#fef2f2;color:#dc2626;padding:3px 10px;border-radius:99px;font-size:11px;">On Hold: '+ps.hold+'</span>'+
+      '</div>'+
+
+      '<div style="font-size:11px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Active Roles</div>'+
+      '<div style="overflow-x:auto;margin-bottom:14px;">'+
+        '<table class="records-table"><thead><tr><th>Role</th><th>Pri</th><th>Stage</th><th>Cands</th><th>Next milestone</th><th>Close</th><th>Notes</th></tr></thead>'+
+        '<tbody>'+roleRows+'</tbody></table></div>'+
+
+      (flagHtml?'<div style="font-size:11px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Flags &amp; Blockers</div><div style="margin-bottom:14px;">'+flagHtml+'</div>':'')+
+      (rec.wins?'<div style="font-size:11px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">Today&#39;s Wins</div><div style="font-size:12px;color:#444;padding:8px 12px;background:#f5f4f0;border-radius:8px;margin-bottom:14px;">'+rec.wins+'</div>':'')+
+      (tmrHtml?'<div style="font-size:11px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Plan for Tomorrow</div><div>'+tmrHtml+'</div>':'');
+
+    wrap.appendChild(div);
+  });
+}
+
+function exportDRExcel(){
+  var date=gv('dr-date')||'—';
+  var week=gv('dr-week')||'—';
+  var dept=gv('dr-dept-sel')||'All';
+  var member=drMember.name||'—';
+
+  var snapData=[
+    ['Member',member],['Role',drMember.role==='sourcer'?'Sourcer':'Recruiter'],['Department',dept],['Date',date],['Week',week],[''],
+    ['SNAPSHOT',''],
+    ['Open roles (this dept)',gv('sn-total-roles')||''],
+    ['Candidates in pipeline',gv('sn-pipeline')||''],
+    ['Roles needing attention',gv('sn-attention')||''],
+    ['Offers extended (week)',gv('sn-offers')||''],
+    [''],
+    ['PRIORITY ROLES',''],
+    ['High priority',gv('pr-high')||''],
+    ['Mid priority',gv('pr-mid')||''],
+    ['Low priority',gv('pr-low')||''],
+    [''],
+    ['PIPELINE METRICS',''],
+    ['Screening today',gv('sub-screening')||''],
+    ['Mgr interviews scheduled',gv('sub-mgr-ivs')||''],
+    ['Offers accepted',gv('sub-accepted')||'']
+  ];
+
+  var pipelineData=[['Role / Dept','Priority','Stage','Candidates','Next Milestone','Target Close','Notes']];
+  drPipelineRows.forEach(function(idx){
+    var rowEl=document.getElementById('dr-pr-'+idx);
+    if(!rowEl)return;
+    pipelineData.push([gv('pr-role-'+idx),gv('pr-pri-'+idx),gv('pr-stage-'+idx),gv('pr-cands-'+idx),gv('pr-milestone-'+idx),gv('pr-close-'+idx),gv('pr-notes-'+idx)]);
+  });
+
+  var flagsData=[['Type','Description']];
+  drFlags.forEach(function(idx){
+    var el=document.getElementById('flag-text-'+idx);
+    var typeEl=document.getElementById('flag-type-'+idx);
+    if(el&&el.value.trim()){flagsData.push([typeEl?typeEl.value.toUpperCase():'RISK',el.value.trim()]);}
+  });
+
+  var planData=[['WINS'],[(gv('dr-wins')||'None')],[''],['PLAN FOR TOMORROW'],['P1',gv('tmr-1')],['P2',gv('tmr-2')],['P3',gv('tmr-3')],['P4',gv('tmr-4')]];
+
+  writeExcel([
+    {name:'Snapshot',data:snapData},
+    {name:'Pipeline',data:pipelineData},
+    {name:'Flags',data:flagsData},
+    {name:'Wins & Plan',data:planData}
+  ],'DailyReport_'+member.replace(/\s/g,'')+'_'+date+'.xlsx');
+}
+
+function initDailyReport(){
+  if(drInited)return;drInited=true;
+  var today=new Date();
+  var y=today.getFullYear(),mo=String(today.getMonth()+1).padStart(2,'0'),d=String(today.getDate()).padStart(2,'0');
+  var dateEl=document.getElementById('dr-date');
+  if(dateEl)dateEl.value=y+'-'+mo+'-'+d;
+  // Pre-select logged-in user if they match a member
+  if(currentUser&&currentUser!=='Admin'){
+    var btns=document.querySelectorAll('.dr-member-btn');
+    btns.forEach(function(btn){
+      if(btn.textContent.trim()===currentUser){btn.click();}
+    });
+  }
+}
+
+/* ── FILE UPLOAD FOR SECTION 2 ── */function escHtml(str){
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function populatePipelineRows(roles){
+  var tbody=document.getElementById('dr-pipeline-body');
+  if(!tbody)return;
+  tbody.innerHTML='';
+  drPipelineRows=[];
+  roles.forEach(function(r){
+    var idx=drPipelineRows.length;
+    drPipelineRows.push(idx);
+    var tr=document.createElement('tr');
+    tr.id='dr-pr-'+idx;
+    var priVal=String(r.priority||'2');
+    var stageOpts=['Sourcing','Screening','Interview Scheduled','Mgr Interview','Final Round','Offer Stage','Offer Accepted','On Hold'];
+    var stageVal=r.stage||'Sourcing';
+    var stageOptions=stageOpts.map(function(s){return'<option'+(s===stageVal?' selected':'')+'>'+s+'</option>';}).join('');
+    tr.innerHTML=
+      '<td><input class="dr-td-input" type="text" value="'+escHtml(r.role||'')+'" placeholder="Role title" id="pr-role-'+idx+'" oninput="updateDRPreview()"></td>'+
+      '<td><select class="dr-stage-select" id="pr-pri-'+idx+'" onchange="updateDRPreview()">'+
+        '<option value="1"'+(priVal==='1'?' selected':'')+'>🔴 1 – High</option>'+
+        '<option value="2"'+(priVal==='2'?' selected':'')+'>🟡 2 – Mid</option>'+
+        '<option value="3"'+(priVal==='3'?' selected':'')+'>🟢 3 – Low</option>'+
+      '</select></td>'+
+      '<td><select class="dr-stage-select" id="pr-stage-'+idx+'" onchange="updateDRPreview()">'+stageOptions+'</select></td>'+
+      '<td style="text-align:center;"><input class="dr-td-input" type="number" min="0" value="'+(r.candidates||0)+'" id="pr-cands-'+idx+'" style="width:44px;text-align:center;" oninput="updateDRPreview()"></td>'+
+      '<td><input class="dr-td-input" type="text" value="'+escHtml(r.milestone||'')+'" id="pr-milestone-'+idx+'" oninput="updateDRPreview()"></td>'+
+      '<td><input class="dr-td-input" type="date" value="'+(r.close||'')+'" id="pr-close-'+idx+'" oninput="updateDRPreview()"></td>'+
+      '<td><input class="dr-td-input" type="text" value="'+escHtml(r.notes||'')+'" id="pr-notes-'+idx+'" oninput="updateDRPreview()"></td>'+
+      '<td><button class="dr-remove-row" onclick="removePipelineRow('+idx+')">✕</button></td>';
+    tbody.appendChild(tr);
+  });
+  updateDRPreview();
+}
+
+function quickAddRoles(){
+  var ta=document.getElementById('dr-quick-add');
+  if(!ta||!ta.value.trim())return;
+  var lines=ta.value.split('\n').map(function(l){return l.trim();}).filter(function(l){return l.length>1;});
+  if(!lines.length)return;
+
+  var priMap={'high':'1','h':'1','1':'1','low':'3','l':'3','3':'3','mid':'2','m':'2','2':'2'};
+
+  lines.forEach(function(line){
+    var parts=line.split(',').map(function(p){return p.trim();});
+    var roleName=parts[0]||'';
+    if(!roleName)return;
+
+    // Extract priority (2nd part if it looks like priority)
+    var priority='2';
+    var candidates=0;
+    if(parts.length>=2){
+      var p2=parts[1].toLowerCase().trim();
+      if(priMap[p2]){
+        priority=priMap[p2];
+        if(parts.length>=3){
+          var c=parseInt(parts[2]);
+          if(!isNaN(c))candidates=c;
+        }
+      } else {
+        var c2=parseInt(parts[1]);
+        if(!isNaN(c2))candidates=c2;
+      }
+    }
+
+    var idx=drPipelineRows.length;
+    drPipelineRows.push(idx);
+    var tbody=document.getElementById('dr-pipeline-body');
+    if(!tbody)return;
+    var tr=document.createElement('tr');
+    tr.id='dr-pr-'+idx;
+    var stageOpts=['Sourcing','Screening','Interview Scheduled','Mgr Interview','Final Round','Offer Stage','Offer Accepted','On Hold'];
+    var stageOptions=stageOpts.map(function(s){return'<option>'+s+'</option>';}).join('');
+    tr.innerHTML=
+      '<td><input class="dr-td-input" type="text" value="'+escHtml(roleName)+'" placeholder="Role title" id="pr-role-'+idx+'" oninput="updateDRPreview()"></td>'+
+      '<td><select class="dr-stage-select" id="pr-pri-'+idx+'" onchange="updateDRPreview()">'+
+        '<option value="1"'+(priority==='1'?' selected':'')+'>&#128308; 1 \u2013 High</option>'+
+        '<option value="2"'+(priority==='2'?' selected':'')+'>&#128993; 2 \u2013 Mid</option>'+
+        '<option value="3"'+(priority==='3'?' selected':'')+'>&#128994; 3 \u2013 Low</option>'+
+      '</select></td>'+
+      '<td><select class="dr-stage-select" id="pr-stage-'+idx+'" onchange="updateDRPreview()">'+stageOptions+'</select></td>'+
+      '<td style="text-align:center;"><input class="dr-td-input" type="number" min="0" value="'+candidates+'" id="pr-cands-'+idx+'" style="width:44px;text-align:center;" oninput="updateDRPreview()"></td>'+
+      '<td><input class="dr-td-input" type="text" value="" placeholder="e.g. Final interview Fri" id="pr-milestone-'+idx+'" oninput="updateDRPreview()"></td>'+
+      '<td><input class="dr-td-input" type="date" id="pr-close-'+idx+'" oninput="updateDRPreview()"></td>'+
+      '<td><input class="dr-td-input" type="text" value="" placeholder="Notes..." id="pr-notes-'+idx+'" oninput="updateDRPreview()"></td>'+
+      '<td><button class="dr-remove-row" onclick="removePipelineRow('+idx+')">&#x2715;</button></td>';
+    tbody.appendChild(tr);
+  });
+
+  ta.value='';
+  updateDRPreview();
+}
+
+function renderPipelineSummary(){
+  var wrap=document.getElementById('dr-pipeline-summary');
+  if(!wrap)return;
+
+  var stageColors={
+    'Sourcing':'#f5f4f0','Screening':'#eef2ff','Interview Scheduled':'#fef9c3',
+    'Mgr Interview':'#fef3c7','Final Round':'#f5f3ff','Offer Stage':'#f0fdf4',
+    'Offer Accepted':'#dcfce7','On Hold':'#fef2f2'
+  };
+  var stageText={
+    'Sourcing':'#888','Screening':'#4f46e5','Interview Scheduled':'#854d0e',
+    'Mgr Interview':'#b45309','Final Round':'#7c3aed','Offer Stage':'#16a34a',
+    'Offer Accepted':'#15803d','On Hold':'#dc2626'
+  };
+
+  var rows=[];
+  drPipelineRows.forEach(function(idx){
+    var rowEl=document.getElementById('dr-pr-'+idx);
+    if(!rowEl)return;
+    var role=gv('pr-role-'+idx);
+    if(!role)return;
+    var stage=gv('pr-stage-'+idx)||'Sourcing';
+    var cands=gv('pr-cands-'+idx)||'0';
+    var pri=gv('pr-pri-'+idx)||'2';
+    rows.push({role:role,stage:stage,cands:cands,pri:pri});
+  });
+
+  if(!rows.length){
+    wrap.innerHTML='<div style="font-size:13px;color:#aaa;text-align:center;padding:16px;">Add roles in section 2 to see the summary here.</div>';
+    return;
+  }
+
+  // Build table
+  var html='<div style="overflow-x:auto;"><table class="dr-pipeline-table"><thead><tr>';
+  html+='<th>Role</th><th>Priority</th><th>Pipeline Stage</th><th style="text-align:center;">Candidates in Pipeline</th>';
+  html+='</tr></thead><tbody>';
+  rows.forEach(function(r){
+    var bg=stageColors[r.stage]||'#f5f4f0';
+    var tc=stageText[r.stage]||'#666';
+    var priLabel=r.pri==='1'?'<span style="background:#fef2f2;color:#dc2626;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;">&#128308; High</span>':
+                 r.pri==='3'?'<span style="background:#f0fdf4;color:#16a34a;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;">&#128994; Low</span>':
+                 '<span style="background:#fffbeb;color:#b45309;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;">&#128993; Mid</span>';
+    var stageLabel='<span style="background:'+bg+';color:'+tc+';padding:2px 10px;border-radius:99px;font-size:11px;font-weight:500;">'+r.stage+'</span>';
+    html+='<tr><td style="font-weight:500;">'+escHtml(r.role)+'</td><td>'+priLabel+'</td><td>'+stageLabel+'</td><td style="text-align:center;font-size:16px;font-weight:700;color:#1a1a18;">'+r.cands+'</td></tr>';
+  });
+  html+='</tbody></table></div>';
+
+  // Stage count pills at bottom
+  var stageCounts={};
+  rows.forEach(function(r){stageCounts[r.stage]=(stageCounts[r.stage]||0)+1;});
+  html+='<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;padding-top:12px;border-top:0.5px solid #e4e2da;">';
+  Object.keys(stageCounts).forEach(function(s){
+    var bg=stageColors[s]||'#f5f4f0';
+    var tc=stageText[s]||'#666';
+    html+='<span style="background:'+bg+';color:'+tc+';padding:3px 10px;border-radius:99px;font-size:11px;font-weight:500;">'+s+': '+stageCounts[s]+'</span>';
+  });
+  html+='</div>';
+
+  wrap.innerHTML=html;
+}
+
+function addPipelineRowB(){
+  var idx=drPipelineRowsB.length;
+  drPipelineRowsB.push(idx);
+  var tbody=document.getElementById('dr-pipeline-body-b');
+  if(!tbody)return;
+  var tr=document.createElement('tr');
+  tr.id='dr-pr-b-'+idx;
+  var stageOpts=['Sourcing','Screening','Interview Scheduled','Mgr Interview','Final Round','Offer Stage','Offer Accepted','On Hold'];
+  var stageOptions=stageOpts.map(function(s){return'<option>'+s+'</option>';}).join('');
+  tr.innerHTML=
+    '<td><input class="dr-td-input" type="text" placeholder="Role title" id="pr-b-role-'+idx+'" oninput="updateDRPreview()"></td>'+
+    '<td><select class="dr-stage-select" id="pr-b-pri-'+idx+'" onchange="updateDRPreview()">'+
+      '<option value="1">&#128308; 1 – High</option>'+
+      '<option value="2" selected>&#128993; 2 – Mid</option>'+
+      '<option value="3">&#128994; 3 – Low</option>'+
+    '</select></td>'+
+    '<td><select class="dr-stage-select" id="pr-b-stage-'+idx+'" onchange="updateDRPreview()">'+stageOptions+'</select></td>'+
+    '<td style="text-align:center;"><input class="dr-td-input" type="number" min="0" placeholder="0" id="pr-b-cands-'+idx+'" style="width:44px;text-align:center;" oninput="updateDRPreview()"></td>'+
+    '<td><input class="dr-td-input" type="text" placeholder="e.g. Final interview Fri" id="pr-b-milestone-'+idx+'" oninput="updateDRPreview()"></td>'+
+    '<td><input class="dr-td-input" type="date" id="pr-b-close-'+idx+'" oninput="updateDRPreview()"></td>'+
+    '<td><input class="dr-td-input" type="text" placeholder="Notes..." id="pr-b-notes-'+idx+'" oninput="updateDRPreview()"></td>'+
+    '<td><button class="dr-remove-row" onclick="removePipelineRowB('+idx+')">&#x2715;</button></td>';
+  tbody.appendChild(tr);
+}
+
+function removePipelineRowB(idx){
+  var row=document.getElementById('dr-pr-b-'+idx);
+  if(row)row.remove();
+  drPipelineRowsB=drPipelineRowsB.filter(function(i){return i!==idx;});
+  updateDRPreview();
+}
+
+function quickAddRolesB(){
+  var ta=document.getElementById('dr-quick-add-b');
+  if(!ta||!ta.value.trim())return;
+  var lines=ta.value.split('\n').map(function(l){return l.trim();}).filter(function(l){return l.length>1;});
+  if(!lines.length)return;
+  var priMap={'high':'1','h':'1','1':'1','low':'3','l':'3','3':'3','mid':'2','m':'2','2':'2'};
+  lines.forEach(function(line){
+    var parts=line.split(',').map(function(p){return p.trim();});
+    var roleName=parts[0]||'';
+    if(!roleName)return;
+    var priority='2';
+    var candidates=0;
+    if(parts.length>=2){
+      var p2=parts[1].toLowerCase().trim();
+      if(priMap[p2]){
+        priority=priMap[p2];
+        if(parts.length>=3){var c=parseInt(parts[2]);if(!isNaN(c))candidates=c;}
+      } else {
+        var c2=parseInt(parts[1]);if(!isNaN(c2))candidates=c2;
+      }
+    }
+    var idx=drPipelineRowsB.length;
+    drPipelineRowsB.push(idx);
+    var tbody=document.getElementById('dr-pipeline-body-b');
+    if(!tbody)return;
+    var tr=document.createElement('tr');
+    tr.id='dr-pr-b-'+idx;
+    var stageOpts=['Sourcing','Screening','Interview Scheduled','Mgr Interview','Final Round','Offer Stage','Offer Accepted','On Hold'];
+    var stageOptions=stageOpts.map(function(s){return'<option>'+s+'</option>';}).join('');
+    tr.innerHTML=
+      '<td><input class="dr-td-input" type="text" value="'+escHtml(roleName)+'" placeholder="Role title" id="pr-b-role-'+idx+'" oninput="updateDRPreview()"></td>'+
+      '<td><select class="dr-stage-select" id="pr-b-pri-'+idx+'" onchange="updateDRPreview()">'+
+        '<option value="1"'+(priority==='1'?' selected':'')+'>&#128308; 1 – High</option>'+
+        '<option value="2"'+(priority==='2'?' selected':'')+'>&#128993; 2 – Mid</option>'+
+        '<option value="3"'+(priority==='3'?' selected':'')+'>&#128994; 3 – Low</option>'+
+      '</select></td>'+
+      '<td><select class="dr-stage-select" id="pr-b-stage-'+idx+'" onchange="updateDRPreview()">'+stageOptions+'</select></td>'+
+      '<td style="text-align:center;"><input class="dr-td-input" type="number" min="0" value="'+candidates+'" id="pr-b-cands-'+idx+'" style="width:44px;text-align:center;" oninput="updateDRPreview()"></td>'+
+      '<td><input class="dr-td-input" type="text" value="" id="pr-b-milestone-'+idx+'" oninput="updateDRPreview()"></td>'+
+      '<td><input class="dr-td-input" type="date" id="pr-b-close-'+idx+'" oninput="updateDRPreview()"></td>'+
+      '<td><input class="dr-td-input" type="text" value="" id="pr-b-notes-'+idx+'" oninput="updateDRPreview()"></td>'+
+      '<td><button class="dr-remove-row" onclick="removePipelineRowB('+idx+')">&#x2715;</button></td>';
+    tbody.appendChild(tr);
+  });
+  ta.value='';
+  updateDRPreview();
+}
 
 window.addEventListener('DOMContentLoaded',function(){
   ['b','c','d','e','g'].forEach(function(p){populateYears(p+'-year');updatePeriod(p);});
